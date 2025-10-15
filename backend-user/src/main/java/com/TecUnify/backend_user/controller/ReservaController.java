@@ -1,3 +1,4 @@
+
 package com.TecUnify.backend_user.controller;
 
 import com.TecUnify.backend_user.dto.ReservaDTO;
@@ -47,4 +48,8 @@ public class ReservaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity
+    public ResponseEntity<?> cancelarReserva(@PathVariable Long id) {
+        reservaService.cancelarReserva(id);
+        return ResponseEntity.ok("Reserva cancelada");
+    }
+}

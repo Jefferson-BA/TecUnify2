@@ -3,7 +3,7 @@ package com.TecUnify.backend_user.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import javax.management.relation.Role;
+import com.TecUnify.backend_user.model.Role;
 import java.time.LocalDateTime;
 
 @Entity

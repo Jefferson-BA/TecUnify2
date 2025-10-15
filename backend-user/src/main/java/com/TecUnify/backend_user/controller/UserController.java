@@ -1,7 +1,10 @@
+
 package com.TecUnify.backend_user.controller;
+
 import com.TecUnify.backend_user.dto.UserDTO;
 import com.TecUnify.backend_user.model.User;
 import com.TecUnify.backend_user.service.UserService;
+import com.TecUnify.backend_user.service.ReservaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +17,13 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final ReservaService reservaService;
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
@@ -31,11 +36,14 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(id, userDetails));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/reserva/{id}")
     public ResponseEntity<?> cancelarReserva(@PathVariable Long id) {
         reservaService.cancelarReserva(id);
         return ResponseEntity.ok("Reserva cancelada");
-    }<?> deleteUser(@PathVariable Long id) {
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok("Usuario eliminado");
     }
