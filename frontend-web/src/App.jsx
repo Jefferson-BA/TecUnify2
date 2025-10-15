@@ -6,26 +6,26 @@ import RegisterPage from './pages/RegisterPage';
 
 function App() {
   const [selectedSpace, setSelectedSpace] = React.useState(null);
-  const [view, setView] = React.useState('home'); // 'home', 'login', 'register'
-  const [user, setUser] = React.useState(null); // usuario logueado
+  const [view, setView] = React.useState('home');
+  const [user, setUser] = React.useState(null);
 
   const spaces = [
     {
       id: 1,
       title: 'Biblioteca',
       description: 'Reserva salas de estudio para tus trabajos grupales o individuales',
-      // Aquí se usaría la URL de la imagen de la biblioteca
-      imageUrl: 'https://i.imgur.com/kY7qW47.png', // Placeholder para la imagen de la biblioteca
-      color: 'bg-white', // Cambiado a blanco para que la imagen de fondo resalte
+
+      imageUrl: '/biblio.png',
+      color: 'bg-white',
       btnColor: 'bg-blue-600 hover:bg-blue-700'
     },
     {
       id: 2,
       title: 'Polideportivo',
       description: 'Separa canchas de fútbol, vóley o básquet y disfruta del deporte',
-      // Aquí se usaría la URL de la imagen del polideportivo
-      imageUrl: 'https://i.imgur.com/Qk7Gj0m.png', // Placeholder para la imagen del polideportivo
-      color: 'bg-white', // Cambiado a blanco
+
+      imageUrl: '/deportivo.png',
+      color: 'bg-white',
       btnColor: 'bg-green-600 hover:bg-green-700'
     },
     {
@@ -33,7 +33,7 @@ function App() {
       title: 'FabLab',
       description: 'Accede a impresoras 3D, cortadoras láser y herramientas de innovación',
       // Aquí se usaría la URL de la imagen del FabLab
-      imageUrl: 'https://i.imgur.com/oWb6jNn.png', // Placeholder para la imagen del FabLab
+      imageUrl: '/fablab.png', // Placeholder para la imagen del FabLab
       color: 'bg-white', // Cambiado a blanco
       btnColor: 'bg-purple-600 hover:bg-purple-700'
     }
@@ -123,7 +123,7 @@ function App() {
           {/* Hero Section - Adaptado al diseño de la imagen */}
           <div
             className="pt-16 text-white bg-cover bg-center relative"
-            style={{ backgroundImage: `url('https://i.imgur.com/uR4pS6D.jpeg')` }} // Imagen de fondo del hero
+            style={{ backgroundImage: `url('/fondito.png')` }} // Imagen de fondo del hero
           >
             {/* Overlay para el degradado azul/cian */}
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/70 to-cyan-500/70"></div>
@@ -146,7 +146,7 @@ function App() {
                 {/* Para simular la persona flotante, podrías usar una imagen PNG con transparencia */}
                 <div className="absolute right-0 bottom-0 md:relative md:flex md:justify-center"> {/* Posicionamiento para la imagen del hombre */}
                   <img
-                    src="https://i.imgur.com/9n2K2vB.png" // Placeholder para la imagen del hombre recortado
+                    src="/hombre.png" // Placeholder para la imagen del hombre recortado
                     alt="Persona flotando"
                     className="w-80 h-auto md:w-full max-w-sm"
                     style={{ position: 'absolute', right: '0', bottom: '0', transform: 'translateX(20%) translateY(20%)' }} // Ajusta según la imagen
@@ -248,7 +248,7 @@ function App() {
                 <div
                   className="bg-gray-800 rounded-lg h-64 flex items-center justify-center p-4"
                   style={{
-                    backgroundImage: `url('https://i.imgur.com/gK2Jz8c.png')`, // Placeholder para el logo del footer
+                    backgroundImage: `url('/mapita.png')`, // Placeholder para el logo del footer
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',
