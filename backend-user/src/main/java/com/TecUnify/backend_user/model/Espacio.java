@@ -1,5 +1,9 @@
 package com.TecUnify.backend_user.model;
 
+<<<<<<< HEAD
+public class Espacio {
+}
+=======
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -53,3 +57,4 @@ public class Espacio {
         updatedAt = LocalDateTime.now();
     }
 }
+>>>>>>> jeff-B

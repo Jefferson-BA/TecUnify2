@@ -1,5 +1,9 @@
 package com.TecUnify.backend_user.model;
 
+<<<<<<< HEAD
+public class User {
+}
+=======
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -52,3 +56,4 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 }
+>>>>>>> jeff-B

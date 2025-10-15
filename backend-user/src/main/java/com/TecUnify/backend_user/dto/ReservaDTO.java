@@ -1,5 +1,9 @@
 package com.TecUnify.backend_user.dto;
 
+<<<<<<< HEAD
+public class ReservaDTO {
+}
+=======
 import com.TecUnify.backend_user.model.EstadoReserva;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -17,3 +21,4 @@ public class ReservaDTO {
     private EstadoReserva estado;
     private String observaciones;
 }
+>>>>>>> jeff-B

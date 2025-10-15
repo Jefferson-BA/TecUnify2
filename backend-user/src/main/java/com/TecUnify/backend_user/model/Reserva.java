@@ -1,5 +1,8 @@
 package com.TecUnify.backend_user.model;
 
+<<<<<<< HEAD
+public class Reserva {
+=======
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -49,4 +52,5 @@ public class Reserva {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+>>>>>>> jeff-B
 }

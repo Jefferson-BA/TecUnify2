@@ -1,5 +1,9 @@
 package com.TecUnify.backend_user.dto;
 
+<<<<<<< HEAD
+public class EspacioDTO {
+}
+=======
 import com.TecUnify.backend_user.model.TipoEspacio;
 import lombok.*;
 
@@ -17,3 +21,4 @@ public class EspacioDTO {
     private String ubicacion;
     private Boolean disponible;
 }
+>>>>>>> jeff-B

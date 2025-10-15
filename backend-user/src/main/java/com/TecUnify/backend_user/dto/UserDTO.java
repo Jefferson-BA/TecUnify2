@@ -1,5 +1,8 @@
 package com.TecUnify.backend_user.dto;
 
+<<<<<<< HEAD
+public class UserDTO {
+=======
 import com.TecUnify.backend_user.model.Role;
 import lombok.*;
 
@@ -15,4 +18,5 @@ public class UserDTO {
     private String phone;
     private Role role;
     private Boolean active;
+>>>>>>> jeff-B
 }
