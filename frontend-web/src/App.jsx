@@ -244,7 +244,7 @@ function App() {
                     <span className="text-gray-400">Síguenos en: Facebook | Instagram | LinkedIn</span>
                   </div>
                 </div>
-                {/* Sección del logo de TecUnify en el footer */}
+                {/* Sección del logo de TecUnify en el foonbter */}
                 <div
                   className="bg-gray-800 rounded-lg h-64 flex items-center justify-center p-4"
                   style={{
