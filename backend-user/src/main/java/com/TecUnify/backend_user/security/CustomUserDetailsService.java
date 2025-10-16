@@ -1,4 +1,4 @@
-package com.TecUnify.backend_user.config;
+package com.TecUnify.backend_user.security;
 
 import com.TecUnify.backend_user.model.User;
 import com.TecUnify.backend_user.repository.UserRepository;

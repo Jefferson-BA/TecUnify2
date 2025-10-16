@@ -6,7 +6,7 @@ import com.TecUnify.backend_user.dto.UserDTO;
 import com.TecUnify.backend_user.model.User;
 import com.TecUnify.backend_user.model.Role;
 import com.TecUnify.backend_user.service.UserService;
-import com.TecUnify.backend_user.repository.UserRepository;
+import com.TecUnify.backend_user.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class AuthController {
     private final UserService userService;
-    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
@@ -26,9 +26,7 @@ public class AuthController {
         try {
             user.setRole(Role.USER);
             UserDTO savedUser = userService.createUser(user);
-
-            // Token simple por ahora (luego implementamos JWT real)
-            String token = "token_" + savedUser.getId() + "_" + System.currentTimeMillis();
+            String token = jwtUtil.generateToken(savedUser.getEmail());
 
             AuthResponse response = AuthResponse.builder()
                     .token(token)
@@ -45,32 +43,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Buscar usuario por email
-            User user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-            // Verificar contraseña
-            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                return ResponseEntity.badRequest().body("Credenciales inválidas");
-            }
-
-            // Convertir a DTO
-            UserDTO userDTO = UserDTO.builder()
-                    .id(user.getId())
-                    .email(user.getEmail())
-                    .firstName(user.getFirstName())
-                    .lastName(user.getLastName())
-                    .phone(user.getPhone())
-                    .role(user.getRole())
-                    .active(user.getActive())
-                    .build();
-
-            // Token simple
-            String token = "token_" + user.getId() + "_" + System.currentTimeMillis();
+            UserDTO user = userService.getUserByEmail(request.getEmail());
+            String token = jwtUtil.generateToken(user.getEmail());
 
             AuthResponse response = AuthResponse.builder()
                     .token(token)
-                    .user(userDTO)
+                    .user(user)
                     .message("Login exitoso")
                     .build();
 
@@ -81,12 +59,17 @@ public class AuthController {
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<?> validateToken(@RequestHeader(value = "Authorization", required = false) String token) {
-        if (token == null || token.isEmpty()) {
-            return ResponseEntity.badRequest().body("Token no proporcionado");
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
         }
 
-        // Por ahora solo devolvemos que es válido
-        return ResponseEntity.ok().body("{\"valid\": true}");
+        boolean isValid = jwtUtil.validateToken(token);
+        if (isValid) {
+            String email = jwtUtil.extractEmail(token);
+            UserDTO user = userService.getUserByEmail(email);
+            return ResponseEntity.ok(user);
+        }
+        return ResponseEntity.badRequest().body("Token inválido");
     }
 }
