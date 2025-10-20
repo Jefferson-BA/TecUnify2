@@ -21,6 +21,7 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
             user.setRole(Role.USER);
+            user.setActive(true);
             UserDTO savedUser = userService.createUser(user);
             AuthResponse response = AuthResponse.builder()
                     .token(null)

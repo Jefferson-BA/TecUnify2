@@ -29,3 +29,9 @@ logging:
 jwt:
   secret: TecUnify_SecretKey_2025_MuySeguro_ParaProduccion_CambiarEsto_256bits_Minimo
   expiration: 86400000
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
