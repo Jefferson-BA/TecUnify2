@@ -37,25 +37,25 @@ function App() {
   ];
 
   const benefits = [
-    { 
-      icon: <Zap className="w-10 h-10 text-blue-600" />, 
-      title: 'Rápido y fácil de usar', 
-      desc: 'Sistema intuitivo para reservar en segundos' 
+    {
+      icon: <Zap className="w-10 h-10 text-blue-600" />,
+      title: 'Rápido y fácil de usar',
+      desc: 'Sistema intuitivo para reservar en segundos'
     },
-    { 
-      icon: <Clock className="w-10 h-10 text-blue-600" />, 
-      title: 'Reservas en tiempo real', 
-      desc: 'Consulta horarios disponibles en tiempo real' 
+    {
+      icon: <Clock className="w-10 h-10 text-blue-600" />,
+      title: 'Reservas en tiempo real',
+      desc: 'Consulta horarios disponibles en tiempo real'
     },
-    { 
-      icon: <Calendar className="w-10 h-10 text-blue-600" />, 
-      title: 'Horarios organizados', 
-      desc: 'Accede a canchas, cubículos y salones' 
+    {
+      icon: <Calendar className="w-10 h-10 text-blue-600" />,
+      title: 'Horarios organizados',
+      desc: 'Accede a canchas, cubículos y salones'
     },
-    { 
-      icon: <Monitor className="w-10 h-10 text-blue-600" />, 
-      title: 'Acceso desde cualquier dispositivo', 
-      desc: 'Diseñado especialmente para la comunidad TECSUP' 
+    {
+      icon: <Monitor className="w-10 h-10 text-blue-600" />,
+      title: 'Acceso desde cualquier dispositivo',
+      desc: 'Diseñado especialmente para la comunidad TECSUP'
     }
   ];
 
@@ -73,37 +73,37 @@ function App() {
             <div className="hidden md:flex items-center space-x-8">
               <a href="#nosotros" className="text-gray-700 hover:text-blue-600">Nosotros</a>
               <a href="#zona-reserva" className="text-gray-700 hover:text-blue-600">Zona Reserva</a>
-              
+
               {!user && (
-                <button 
-                  className="text-gray-700 hover:text-blue-600" 
+                <button
+                  className="text-gray-700 hover:text-blue-600"
                   onClick={() => setView('register')}
                 >
                   Registrarse
                 </button>
               )}
-              
+
               {!user && (
-                <button 
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition" 
+                <button
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
                   onClick={() => setView('login')}
                 >
                   Iniciar Sesión
                 </button>
               )}
-              
+
               {user && (
                 <span className="text-blue-600 font-semibold">
                   Hola, {user.firstName || user.email}
                 </span>
               )}
-              
+
               {user && (
-                <button 
-                  className="ml-4 text-gray-700 hover:text-red-600" 
-                  onClick={() => { 
-                    setUser(null); 
-                    setView('home'); 
+                <button
+                  className="ml-4 text-gray-700 hover:text-red-600"
+                  onClick={() => {
+                    setUser(null);
+                    setView('home');
                   }}
                 >
                   Cerrar sesión
@@ -118,26 +118,29 @@ function App() {
       {view === 'home' && (
         <>
           {/* Hero Section */}
-          <div className="pt-16 bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                    Reserva tus espacios en Tecsup de manera rápida y sencilla
-                  </h2>
-                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6 mb-6">
-                    <p className="text-xl mb-4">
-                      Biblioteca, FabLab y Polideportivo EN UN SOLO CLICK ✓
-                    </p>
-                    <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
-                      Reservar ahora
-                    </button>
-                  </div>
-                </div>
-                <div className="flex justify-center">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-full p-8">
-                    <Users className="w-48 h-48 text-white" />
-                  </div>
+          <div className="pt-16 relative bg-gradient-to-r from-blue-500 to-cyan-500 text-white overflow-hidden">
+            {/* Imagen de fondo */}
+            <div className="absolute inset-0 opacity-30">
+              <img
+                src="/logo_landing.png"
+                alt="Estudiantes de Tecsup" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Contenido encima de la imagen */}
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+              <div className="max-w-2xl">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                  Reserva tus espacios en Tecsup de manera rápida y sencilla
+                </h2>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6 mb-6">
+                  <p className="text-xl mb-4">
+                    Biblioteca, FabLab y Polideportivo EN UN SOLO CLICK ✓
+                  </p>
+                  <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                    Reservar ahora
+                  </button>
                 </div>
               </div>
             </div>
@@ -148,8 +151,8 @@ function App() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <h2 className="text-4xl font-bold text-gray-900 mb-8">¿Qué es TecUnify?</h2>
               <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-                TecUnify es la plataforma oficial de reservas de Tecsup. Aquí podrás acceder a salas de la biblioteca, 
-                espacios de innovación en el FabLab (impresoras 3D, corte láser) y polideportivos para fútbol, vóley o básquet. 
+                TecUnify es la plataforma oficial de reservas de Tecsup. Aquí podrás acceder a salas de la biblioteca,
+                espacios de innovación en el FabLab (impresoras 3D, corte láser) y polideportivos para fútbol, vóley o básquet.
                 Todo organizado en un solo lugar.
               </p>
             </div>
@@ -160,8 +163,8 @@ function App() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid md:grid-cols-3 gap-8">
                 {spaces.map((space) => (
-                  <div 
-                    key={space.id} 
+                  <div
+                    key={space.id}
                     className={`${space.color} rounded-lg p-8 shadow-lg hover:shadow-2xl transition-all`}
                   >
                     <div className="flex justify-center mb-6">
@@ -192,8 +195,8 @@ function App() {
               </h2>
               <div className="grid md:grid-cols-4 gap-8">
                 {benefits.map((benefit, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="text-center bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition"
                   >
                     <div className="flex justify-center mb-4">
