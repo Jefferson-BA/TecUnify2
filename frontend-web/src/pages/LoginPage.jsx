@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Search, Users, Clock, MapPin, Dumbbell, BookOpen, Wrench } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Mail, Lock } from 'lucide-react';
+import { authAPI } from '../services/api';
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
@@ -11,86 +12,30 @@ export default function HomePage() {
     { id: 'Fab Lab', label: 'Fab Lab', icon: Wrench }
   ];
 
-  const spaces = [
-    {
-      id: 1,
-      name: 'Cancha de Fútbol',
-      category: 'Deportivos',
-      capacity: 22,
-      type: 'Polideportivo',
-      schedule: '09:00 AM - 08:00 PM',
-      status: 'Disponible',
-      image: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=400&h=250&fit=crop'
-    },
-    {
-      id: 2,
-      name: 'Cancha de Vóley y Básquet',
-      category: 'Deportivos',
-      capacity: 20,
-      type: 'Polideportivo',
-      schedule: '09:00 AM - 08:00 PM',
-      status: 'Disponible',
-      image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=400&h=250&fit=crop'
-    },
-    {
-      id: 3,
-      name: 'Sala de Estudio 1',
-      category: 'Sala de Estudio',
-      capacity: 6,
-      type: 'Biblioteca',
-      schedule: '09:00 AM - 08:00 PM',
-      status: 'Disponible',
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=250&fit=crop'
-    },
-    {
-      id: 4,
-      name: 'Sala de Estudio 2',
-      category: 'Sala de Estudio',
-      capacity: 6,
-      type: 'Biblioteca',
-      schedule: '09:00 AM - 08:00 PM',
-      status: 'Disponible',
-      image: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=250&fit=crop'
-    },
-    {
-      id: 5,
-      name: 'Sala de Estudio 3',
-      category: 'Sala de Estudio',
-      capacity: 6,
-      type: 'Biblioteca',
-      schedule: '09:00 AM - 08:00 PM',
-      status: 'Ocupado',
-      image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&h=250&fit=crop'
-    },
-    {
-      id: 6,
-      name: 'Sala de Estudio 4',
-      category: 'Sala de Estudio',
-      capacity: 6,
-      type: 'Biblioteca',
-      schedule: '09:00 AM - 08:00 PM',
-      status: 'Disponible',
-      image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&h=250&fit=crop'
-    },
-    {
-      id: 7,
-      name: 'Impresora 3D',
-      category: 'Fab Lab',
-      capacity: 6,
-      type: 'Fab Lab',
-      schedule: '09:00 AM - 08:00 PM',
-      status: 'Disponible',
-      image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=250&fit=crop'
-    },
-    {
-      id: 8,
-      name: 'Corte laser',
-      category: 'Fab Lab',
-      capacity: 2,
-      type: 'Fab Lab',
-      schedule: '09:00 AM - 08:00 PM',
-      status: 'Disponible',
-      image: 'https://images.unsplash.com/photo-1562408590-e32931084e23?w=400&h=250&fit=crop'
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await authAPI.login(formData);
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      alert(`¡Login exitoso! Bienvenido ${user.firstName || user.email}`);
+      onLoginSuccess(user);
+    } catch (err) {
+      setError(err.response?.data || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
     }
   ];
 
@@ -98,127 +43,147 @@ export default function HomePage() {
     ? spaces 
     : spaces.filter(space => space.category === selectedCategory);
 
+  const handleGoogleLogin = () => {
+    alert('Función de Google Login próximamente');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Sección de Bienvenida */}
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Bienvenido a tecUnify</h1>
-              <p className="text-gray-500">Encuentra y reserva el espacio perfecto para ti</p>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100">
+      {/* Card Principal con dos columnas */}
+      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-5xl w-full flex animate-scale-in">
+        
+        {/* Columna Izquierda - Formulario */}
+        <div className="w-full lg:w-1/2 p-8 md:p-12 relative">
+          {/* Botón Volver */}
+          <button 
+            onClick={onBack} 
+            className="absolute top-6 left-6 text-gray-600 hover:text-gray-900 transition"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+
+          <div className="mt-8">
+            {/* Título */}
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">
+              INICIAR SESIÓN
+            </h1>
+
+            {/* Botón Google */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full bg-white border-2 border-gray-300 rounded-full py-3 px-6 flex items-center justify-center gap-3 hover:bg-gray-50 transition mb-4"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              <span className="text-gray-700 font-medium text-sm">iniciar sesión con google</span>
+            </button>
+
+            {/* Separador */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex-1 h-px bg-gray-300"></div>
+              <span className="text-gray-500 text-sm">o</span>
+              <div className="flex-1 h-px bg-gray-300"></div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-700">
-                <span className="font-normal">Bienvenido de nuevo, </span>
-                <span className="font-semibold">Jefferson</span>
+
+            {/* Error */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg mb-4 text-sm">
+                {error}
+              </div>
+            )}
+
+            {/* Formulario */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email */}
+              <div>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="tu-email@tecsup.edu.pe"
+                    className="w-full pl-10 pr-3 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-400 focus:outline-none text-sm text-gray-700"
+                  />
+                </div>
+              </div>
+
+              {/* Contraseña */}
+              <div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-3 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-400 focus:outline-none text-sm text-gray-700"
+                  />
+                </div>
+              </div>
+
+              {/* Botón Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-cyan-400 text-white py-3 rounded-full font-medium hover:bg-cyan-500 transition disabled:opacity-50 disabled:cursor-not-allowed mt-6 text-sm"
+              >
+                {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+              </button>
+            </form>
+
+            {/* Link a Registro */}
+            <div className="mt-4 text-center">
+              <p className="text-gray-600 text-xs">
+                ¿No tienes cuenta?{' '}
+                <button 
+                  onClick={onSwitchToRegister} 
+                  className="text-cyan-500 font-semibold hover:underline"
+                >
+                  Regístrate aquí
+                </button>
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Barra de Búsqueda */}
-          <div className="flex gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Buscar espacios por nombre o ubicación..."
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              />
-            </div>
-            <button className="px-6 py-3 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-              Todos
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Filtro de Categorías*/}
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {categories.map((category) => {
-              const Icon = category.icon;
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full whitespace-nowrap transition ${
-                    selectedCategory === category.id
-                      ? 'bg-gray-200 text-gray-900'
-                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {Icon && <Icon className="w-4 h-4" />}
-                  {category.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Columna Derecha - Imagen Tecsup */}
+        <div className="hidden lg:block lg:w-1/2 relative">
+          <img 
+            src="/Rectangle 2.png" 
+            alt="Campus Tecsup" 
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
 
-      {/* Espacios */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSpaces.map((space) => (
-            <div key={space.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
-              {/* Image with badges */}
-              <div className="relative h-44">
-                <img 
-                  src={space.image} 
-                  alt={space.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="bg-gray-700/80 backdrop-blur-sm px-3 py-1 rounded text-xs font-medium text-white">
-                    {space.category}
-                  </span>
-                </div>
-                <div className="absolute top-3 right-3">
-                  <span className={`px-3 py-1 rounded text-xs font-medium ${
-                    space.status === 'Disponible' 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-red-500 text-white'
-                  }`}>
-                    {space.status}
-                  </span>
-                </div>
-              </div>
+      <style jsx>{`
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.9);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
 
-              {/* Contenido */}
-              <div className="p-5">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">{space.name}</h3>
-                
-                <div className="space-y-2.5 mb-5">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Users className="w-4 h-4 text-cyan-600" />
-                    <span>Capacidad: {space.capacity} personas</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 text-cyan-600" />
-                    <span>{space.type}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Clock className="w-4 h-4 text-cyan-600" />
-                    <span>Horario: {space.schedule}</span>
-                  </div>
-                </div>
-
-                <button 
-                  disabled={space.status === 'Ocupado'}
-                  className={`w-full py-2.5 rounded-lg font-medium transition ${
-                    space.status === 'Ocupado'
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-cyan-500 text-white hover:bg-cyan-600'
-                  }`}
-                >
-                  {space.status === 'Ocupado' ? 'No disponible' : 'Reservar ahora'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+        .animate-scale-in {
+          animation: scaleIn 0.4s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
+
+export default LoginPage;

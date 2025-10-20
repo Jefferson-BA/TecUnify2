@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Users, Clock, MapPin, Dumbbell, BookOpen, Wrench } from 'lucide-react';
-
+//hola
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   

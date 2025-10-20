@@ -123,7 +123,7 @@ function App() {
             {/* Imagen de fondo */}
             <div className="absolute inset-0 opacity-30">
               <img
-                src={logoLanding}
+                src="/logo_landing.png"
                 alt="Estudiantes de Tecsup" 
                 className="w-full h-full object-cover"
               />
