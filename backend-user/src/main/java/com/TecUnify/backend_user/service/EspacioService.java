@@ -3,7 +3,7 @@ package com.TecUnify.backend_user.service;
 import com.TecUnify.backend_user.dto.EspacioDTO;
 import com.TecUnify.backend_user.model.Espacio;
 import com.TecUnify.backend_user.model.TipoEspacio;
-import com .TecUnify.backend_user.repository.EspacioRepository;
+import com.TecUnify.backend_user.repository.EspacioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
