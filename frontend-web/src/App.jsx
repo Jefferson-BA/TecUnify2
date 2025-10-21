@@ -3,11 +3,22 @@ import React from 'react';
 import { BookOpen, Dumbbell, Cpu, Zap, Clock, Calendar, Monitor, Users, MapPin } from 'lucide-react';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/Home';
 
 function App() {
   const [selectedSpace, setSelectedSpace] = React.useState(null);
-  const [view, setView] = React.useState('home'); // 'home', 'login', 'register'
+  const [view, setView] = React.useState('home'); // 'home', 'login', 'register', 'dashboard'
   const [user, setUser] = React.useState(null); // usuario logueado
+
+  // Verificar si hay un usuario logueado al cargar la aplicación
+  React.useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    const savedToken = localStorage.getItem('token');
+    if (savedUser && savedToken) {
+      setUser(JSON.parse(savedUser));
+      setView('dashboard'); // Ir directamente al dashboard si ya está logueado
+    }
+  }, []);
 
   const spaces = [
     {
@@ -246,7 +257,7 @@ function App() {
           onBack={() => setView('home')}
           onRegisterSuccess={(user) => {
             setUser(user);
-            setView('home');
+            setView('dashboard'); // Redirigir al dashboard de reservas
           }}
           onSwitchToLogin={() => setView('login')}
         />
@@ -257,9 +268,21 @@ function App() {
           onBack={() => setView('home')}
           onLoginSuccess={(user) => {
             setUser(user);
-            setView('home');
+            setView('dashboard'); // Redirigir al dashboard de reservas
           }}
           onSwitchToRegister={() => setView('register')}
+        />
+      )}
+
+      {view === 'dashboard' && user && (
+        <HomePage 
+          user={user} 
+          onLogout={() => {
+            setUser(null);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setView('home');
+          }}
         />
       )}
     </div>

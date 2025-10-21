@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Search, Users, Clock, MapPin, Dumbbell, BookOpen, Wrench } from 'lucide-react';
+import { Search, Users, Clock, MapPin, Dumbbell, BookOpen, Wrench, LogOut } from 'lucide-react';
 
-export default function HomePage() {
+export default function HomePage({ user, onLogout }) {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   
   const categories = [
@@ -108,11 +108,23 @@ export default function HomePage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Bienvenido a tecUnify</h1>
               <p className="text-gray-500">Encuentra y reserva el espacio perfecto para ti</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-700">
-                <span className="font-normal">Bienvenido de nuevo, </span>
-                <span className="font-semibold">Jefferson</span>
-              </p>
+            <div className="text-right flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-700">
+                  <span className="font-normal">Bienvenido de nuevo, </span>
+                  <span className="font-semibold">{user?.firstName || user?.email || 'Usuario'}</span>
+                </p>
+              </div>
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Salir
+                </button>
+              )}
             </div>
           </div>
 
