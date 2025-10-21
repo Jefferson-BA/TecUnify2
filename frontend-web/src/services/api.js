@@ -179,5 +179,17 @@ export const reservaAPI = {
     return response;
   }
 };
-
+// Nueva función para obtener los espacios
+export const getEspacios = async () => {
+  try {
+    // Usamos authApi para llamar al endpoint /espacios
+    // Esto automáticamente incluirá el token de autenticación.
+    const response = await authApi.get('/espacios');
+    return response.data;
+  } catch (error) {
+    // Si hay un error (ej. el token expiró), lo mostramos en consola.
+    console.error('Error al obtener los espacios:', error.response?.data || error.message);
+    throw error;
+  }
+};
 export default api;

@@ -1,11 +1,23 @@
-import React from 'react';
-import { Search, Users, Clock, MapPin, Dumbbell, BookOpen, Wrench } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Home,
+  Calendar,
+  Clock,
+  User,
+  Bot,
+  Search,
+  Users,
+  MapPin,
+  Dumbbell,
+  BookOpen,
+  Wrench
+} from 'lucide-react';
 import TecIAChat from '../components/TecIAChat';
-
+import { getEspacios } from '../services/api';
 // Componente para la sección de Inicio (dashboard principal)
 export function InicioSection({ user }) {
   const [selectedCategory, setSelectedCategory] = React.useState('Todos');
-  
+
   const categories = [
     { id: 'Todos', label: 'Todos', icon: null },
     { id: 'Deportivos', label: 'Deportivos', icon: Dumbbell },
@@ -96,8 +108,8 @@ export function InicioSection({ user }) {
     }
   ];
 
-  const filteredSpaces = selectedCategory === 'Todos' 
-    ? spaces 
+  const filteredSpaces = selectedCategory === 'Todos'
+    ? spaces
     : spaces.filter(space => space.category === selectedCategory);
 
   return (
@@ -144,11 +156,10 @@ export function InicioSection({ user }) {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full whitespace-nowrap transition ${
-                    selectedCategory === category.id
-                      ? 'bg-gray-200 text-gray-900'
-                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full whitespace-nowrap transition ${selectedCategory === category.id
+                    ? 'bg-gray-200 text-gray-900'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   {Icon && <Icon className="w-4 h-4" />}
                   {category.label}
@@ -166,8 +177,8 @@ export function InicioSection({ user }) {
             <div key={space.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
               {/* Image with badges */}
               <div className="relative h-40">
-                <img 
-                  src={space.image} 
+                <img
+                  src={space.image}
                   alt={space.name}
                   className="w-full h-full object-cover"
                 />
@@ -177,11 +188,10 @@ export function InicioSection({ user }) {
                   </span>
                 </div>
                 <div className="absolute top-2.5 right-2.5">
-                  <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
-                    space.status === 'Disponible' 
-                      ? 'bg-emerald-400 text-white' 
-                      : 'bg-red-400 text-white'
-                  }`}>
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${space.status === 'Disponible'
+                    ? 'bg-emerald-400 text-white'
+                    : 'bg-red-400 text-white'
+                    }`}>
                     {space.status}
                   </span>
                 </div>
@@ -190,7 +200,7 @@ export function InicioSection({ user }) {
               {/* Content */}
               <div className="p-4">
                 <h3 className="text-base font-bold text-gray-900 mb-3">{space.name}</h3>
-                
+
                 <div className="space-y-1.5 mb-4">
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <Users className="w-3.5 h-3.5 text-cyan-500" />
@@ -206,13 +216,12 @@ export function InicioSection({ user }) {
                   </div>
                 </div>
 
-                <button 
+                <button
                   disabled={space.status === 'Ocupado'}
-                  className={`w-full py-2 rounded-lg text-sm font-medium transition ${
-                    space.status === 'Ocupado'
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-cyan-500 text-white hover:bg-cyan-600'
-                  }`}
+                  className={`w-full py-2 rounded-lg text-sm font-medium transition ${space.status === 'Ocupado'
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-cyan-500 text-white hover:bg-cyan-600'
+                    }`}
                 >
                   {space.status === 'Ocupado' ? 'No disponible' : 'Reservar ahora'}
                 </button>
@@ -226,22 +235,68 @@ export function InicioSection({ user }) {
 }
 
 // Componente para la sección de Horario
-export function HorarioSection() {
+// --- Componente Horario (Crear Reserva) ---
+function HorarioSection() {
+  const [espacios, setEspacios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Esto se ejecuta una vez cuando el componente carga
+  useEffect(() => {
+    const loadEspacios = async () => {
+      try {
+        setLoading(true); // Empezamos a cargar
+        const data = await getEspacios(); // Llamamos a la API
+        setEspacios(data); // Guardamos los datos recibidos
+        setError(null); // Limpiamos errores previos
+      } catch (err) {
+        setError('No se pudieron cargar los espacios.'); // Guardamos el error
+        console.error(err);
+      } finally {
+        setLoading(false); // Terminamos de cargar (sea éxito o error)
+      }
+    };
+
+    loadEspacios();
+  }, []); // El [] vacío significa "ejecútate solo una vez"
+
+  // 1. Muestra "Cargando..." mientras esperamos los datos
+  if (loading) {
+    return <div className="p-6">Cargando espacios...</div>;
+  }
+
+  // 2. Muestra un error si la llamada a la API falló
+  if (error) {
+    return <div className="p-6 text-red-500">{error}</div>;
+  }
+
+  // 3. Si todo salió bien, muestra los espacios
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Horario de Espacios</h1>
-          
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="text-center text-gray-500">
-              <Clock className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h2 className="text-xl font-semibold mb-2">Horarios Disponibles</h2>
-              <p>Aquí podrás ver los horarios disponibles para todos los espacios.</p>
-              <p className="text-sm mt-2">Próximamente disponible...</p>
+    <div className="p-6">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-800">Crear una Reserva</h2>
+      <p className="mb-6 text-gray-600">Selecciona un espacio disponible para ver el horario y reservar.</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {espacios.length > 0 ? (
+          // Recorremos la lista de espacios y creamos una "tarjeta" por cada uno
+          espacios.map((espacio) => (
+            <div
+              key={espacio.id}
+              className="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <h3 className="text-xl font-bold text-blue-600 mb-2">{espacio.nombre}</h3>
+              <p className="text-gray-700 mb-3">{espacio.descripcion}</p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li><strong>Tipo:</strong> {espacio.tipo}</li>
+                <li><strong>Capacidad:</strong> {espacio.capacidad} personas</li>
+                <li><strong>Ubicación:</strong> {espacio.ubicacion}</li>
+              </ul>
             </div>
-          </div>
-        </div>
+          ))
+        ) : (
+          // Mensaje si no se encontraron espacios
+          <p>No hay espacios disponibles para reservar en este momento.</p>
+        )}
       </div>
     </div>
   );
@@ -254,7 +309,7 @@ export function MisReservasSection() {
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Mis Reservas</h1>
-          
+
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="text-center text-gray-500">
               <Clock className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -276,7 +331,7 @@ export function MiPerfilSection({ user }) {
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Mi Perfil</h1>
-          
+
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
@@ -288,15 +343,15 @@ export function MiPerfilSection({ user }) {
                 </h2>
                 <p className="text-gray-600">{user?.email}</p>
                 {user?.picture && (
-                  <img 
-                    src={user.picture} 
-                    alt="Foto de perfil" 
+                  <img
+                    src={user.picture}
+                    alt="Foto de perfil"
                     className="w-16 h-16 rounded-full mt-2"
                   />
                 )}
               </div>
             </div>
-            
+
             <div className="mt-6 text-center text-gray-500">
               <p>Información adicional del perfil</p>
               <p className="text-sm mt-2">Próximamente disponible...</p>
@@ -311,4 +366,31 @@ export function MiPerfilSection({ user }) {
 // Componente para la sección de TecIA
 export function TecIASection() {
   return <TecIAChat />;
+}
+
+// --- Componente Principal (El "Cerebro") ---
+// Este es el componente que faltaba.
+export default function DashboardSections({ activeSection, user }) {
+  // 1. Recibe la sección activa ('inicio', 'horario', etc.) y el usuario como props.
+
+  // 2. Usa un switch para decidir qué componente de sección mostrar.
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'inicio':
+        return <InicioSection user={user} />;
+      case 'horario':
+        return <HorarioSection />;
+      case 'mis-reservas':
+        return <MisReservasSection />;
+      case 'tecia':
+        return <TecIASection />;
+      case 'mi-perfil':
+        return <MiPerfilSection user={user} />;
+      default:
+        // 3. Por defecto (o si algo falla), muestra la sección de Inicio.
+        return <InicioSection user={user} />;
+    }
+  };
+
+  return <div className="flex-1 overflow-y-auto">{renderSection()}</div>;
 }
