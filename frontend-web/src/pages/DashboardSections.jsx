@@ -14,9 +14,10 @@ import {
 } from 'lucide-react';
 import TecIAChat from '../components/TecIAChat';
 import { getEspacios } from '../services/api';
+
 // Componente para la sección de Inicio (dashboard principal)
 export function InicioSection({ user }) {
-  const [selectedCategory, setSelectedCategory] = React.useState('Todos');
+  const [selectedCategory, setSelectedCategory] = useState('Todos'); // CORREGIDO: sin React.
 
   const categories = [
     { id: 'Todos', label: 'Todos', icon: null },
@@ -236,7 +237,7 @@ export function InicioSection({ user }) {
 
 // Componente para la sección de Horario
 // --- Componente Horario (Crear Reserva) ---
-function HorarioSection() {
+export function HorarioSection() { // CORREGIDO: añadido 'export'
   const [espacios, setEspacios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
