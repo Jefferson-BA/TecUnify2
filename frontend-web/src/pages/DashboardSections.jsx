@@ -10,10 +10,12 @@ import {
   MapPin,
   Dumbbell,
   BookOpen,
-  Wrench
+  Wrench,
+  Mail,
+  Phone
 } from 'lucide-react';
 import TecIAChat from '../components/TecIAChat';
-import { getEspacios } from '../services/api';
+import { getEspacios, updateUserProfile } from '../services/api';
 
 // Componente para la sección de Inicio (dashboard principal)
 export function InicioSection({ user }) {
@@ -325,40 +327,154 @@ export function MisReservasSection() {
   );
 }
 
-// Componente para la sección de Mi Perfil
+// Componente para la sección de Mi Perfil (AHORA CON FORMULARIO)
 export function MiPerfilSection({ user }) {
-  return (
-    <div className="bg-gray-100 min-h-screen">
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Mi Perfil</h1>
+  // 1. Creamos un estado para el formulario
+  const [formData, setFormData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    telefono: user?.telefono || '' // 2. Usamos los datos del 'user' para rellenar
+  });
 
-          <div className="bg-white rounded-xl shadow-md p-6">
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(''); // Para mensajes de éxito/error
+
+  // 3. Función que actualiza el estado cuando el usuario escribe
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // 4. Función que se llama al guardar
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Evita que la página se recargue
+    setLoading(true);
+    setMessage('');
+    try {
+      // 5. Llamamos a nuestra nueva función de la API
+      const updatedUser = await updateUserProfile(formData);
+      setMessage('¡Perfil actualizado con éxito!');
+      // Opcional: Aquí podrías actualizar el estado 'user' global de App.jsx
+    } catch (err) {
+      setMessage('Error al actualizar el perfil. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false); // Detiene la animación de carga
+    }
+  };
+
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-semibold mb-6 text-gray-800">Mi Perfil</h2>
+
+      {/* Este es el contenedor "chévere" del formulario */}
+      <div className="bg-white rounded-xl shadow-md p-8 max-w-2xl mx-auto">
+
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-6">
+
+            {/* Encabezado con foto (estática por ahora) */}
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center ring-4 ring-blue-200">
                 <User className="w-10 h-10 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">
-                  {user?.firstName || 'Usuario'} {user?.lastName || ''}
-                </h2>
-                <p className="text-gray-600">{user?.email}</p>
-                {user?.picture && (
-                  <img
-                    src={user.picture}
-                    alt="Foto de perfil"
-                    className="w-16 h-16 rounded-full mt-2"
-                  />
-                )}
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {/* Usa los datos del formulario para que se actualice al escribir */}
+                  {formData.firstName || 'Usuario'} {formData.lastName || ''}
+                </h3>
+                <p className="text-gray-500">Actualiza tus datos personales.</p>
               </div>
             </div>
 
-            <div className="mt-6 text-center text-gray-500">
-              <p>Información adicional del perfil</p>
-              <p className="text-sm mt-2">Próximamente disponible...</p>
+            <hr />
+
+            {/* Fila de Nombre y Apellido */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Nombre
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Apellido
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
             </div>
+
+            {/* Email (deshabilitado) */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  value={formData.email}
+                  disabled
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            {/* Teléfono (Nuevo campo) */}
+            <div>
+              <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
+                Número de Teléfono
+              </label>
+              <div className="relative">
+                <Phone className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="tel"
+                  name="telefono"
+                  id="telefono"
+                  placeholder="Ej: +51 987654321"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Botón de Guardar */}
+            <div className="text-right">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400"
+              >
+                {loading ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </div>
+
+            {/* Mensaje de éxito/error */}
+            {message && (
+              <p className={`text-sm text-center ${message.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                {message}
+              </p>
+            )}
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
