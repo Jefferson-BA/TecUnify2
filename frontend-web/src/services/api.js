@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuración base de la API
-const API_BASE_URL = ''; // Usar proxy de Vite
+const API_BASE_URL = 'http://localhost:8081'; // URL directa del backend
 
 // Crear instancia de axios con configuración base
 const api = axios.create({
@@ -49,6 +49,14 @@ export const authAPI = {
   // Login de usuario
   login: async (credentials) => {
     const response = await api.post('/api/auth/login', credentials);
+    return response;
+  },
+
+  // Login con Google
+  loginWithGoogle: async (googleToken) => {
+    const response = await api.post('/api/auth/google', {
+      token: googleToken
+    });
     return response;
   },
 
