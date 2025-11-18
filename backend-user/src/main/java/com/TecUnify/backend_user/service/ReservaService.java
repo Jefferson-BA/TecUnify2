@@ -1,96 +1,94 @@
 package com.TecUnify.backend_user.service;
 
 import com.TecUnify.backend_user.dto.ReservaDTO;
-import com.TecUnify.backend_user.model.Reserva;
-import com.TecUnify.backend_user.model.User;
-import com.TecUnify.backend_user.model.Espacio;
-import com.TecUnify.backend_user.repository.ReservaRepository;
-import com.TecUnify.backend_user.repository.UserRepository;
-import com.TecUnify.backend_user.repository.EspacioRepository;
+import com.TecUnify.backend_user.model.*;
+import com.TecUnify.backend_user.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ReservaService {
+
     private final ReservaRepository reservaRepository;
     private final UserRepository userRepository;
     private final EspacioRepository espacioRepository;
-    private final UserService userService;
-    private final EspacioService espacioService;
 
-    public List<ReservaDTO> getReservasByUsuario(Long usuarioId) {
-        return reservaRepository.findByUsuarioId(usuarioId).stream()
-                .map(this::convertToDTO)
+    public List<ReservaDTO> getByUserId(Long userId) {
+        return reservaRepository.findByUsuarioId(userId)
+                .stream()
+                .map(ReservaDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    public List<ReservaDTO> getReservasByEspacio(Long espacioId) {
-        return reservaRepository.findByEspacioId(espacioId).stream()
-                .map(this::convertToDTO)
+    public List<ReservaDTO> getAll() {
+        return reservaRepository.findAll()
+                .stream()
+                .map(ReservaDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    public ReservaDTO getReservaById(Long id) {
-        return reservaRepository.findById(id)
-                .map(this::convertToDTO)
-                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
-    }
+    public Reserva create(ReservaDTO dto) {
 
-    public ReservaDTO createReserva(Reserva reserva) {
-        User usuario = userRepository.findById(reserva.getUsuario().getId())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        User user = userRepository.findById(dto.getUserId()).orElse(null);
+        Espacio espacio = espacioRepository.findById(dto.getEspacioId()).orElse(null);
+        if (user == null || espacio == null) return null;
 
-        Espacio espacio = espacioRepository.findById(reserva.getEspacio().getId())
-                .orElseThrow(() -> new RuntimeException("Espacio no encontrado"));
+        Reserva r = new Reserva();
+        r.setUsuario(user);
+        r.setEspacio(espacio);
+        r.setFechaReserva(dto.getFechaReserva());
+        r.setHoraInicio(dto.getHoraInicio());
+        r.setHoraFin(dto.getHoraFin());
+        r.setMotivo(dto.getMotivo());
+        r.setObservaciones(dto.getObservaciones());
 
-        // Verificar disponibilidad
-        List<Reserva> conflictos = reservaRepository.findConflictingReservas(
-                espacio.getId(),
-                reserva.getFechaInicio(),
-                reserva.getFechaFin()
-        );
+        // ✔ Estado siempre inicia en PENDIENTE
+        r.setEstado(EstadoReserva.PENDIENTE);
 
-        if (!conflictos.isEmpty()) {
-            throw new RuntimeException("El espacio no está disponible en ese horario");
+        // Precio
+        if (dto.getPrecioTotal() != null) {
+            r.setPrecioTotal(BigDecimal.valueOf(dto.getPrecioTotal()));
         }
 
-        reserva.setUsuario(usuario);
-        reserva.setEspacio(espacio);
-        Reserva savedReserva = reservaRepository.save(reserva);
-        return convertToDTO(savedReserva);
+        return reservaRepository.save(r);
     }
 
-    public ReservaDTO updateReserva(Long id, Reserva reservaDetails) {
-        Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
-
-        reserva.setEstado(reservaDetails.getEstado());
-        reserva.setObservaciones(reservaDetails.getObservaciones());
-
-        Reserva updatedReserva = reservaRepository.save(reserva);
-        return convertToDTO(updatedReserva);
+    public Reserva getById(Long id) {
+        return reservaRepository.findById(id).orElse(null);
     }
 
+    public void delete(Long id) {
+        reservaRepository.deleteById(id);
+    }
     public void cancelarReserva(Long id) {
-        Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
-        reserva.setEstado(com.TecUnify.backend_user.model.EstadoReserva.CANCELADA);
-        reservaRepository.save(reserva);
+        Reserva r = reservaRepository.findById(id).orElse(null);
+        if (r == null) return;
+
+        r.setEstado(EstadoReserva.CANCELADA);  // ← usa tu ENUM
+        reservaRepository.save(r);
     }
 
-    private ReservaDTO convertToDTO(Reserva reserva) {
-        return ReservaDTO.builder()
-                .id(reserva.getId())
-                .usuario(userService.getUserById(reserva.getUsuario().getId()))
-                .espacio(espacioService.getEspacioById(reserva.getEspacio().getId()))
-                .fechaInicio(reserva.getFechaInicio())
-                .fechaFin(reserva.getFechaFin())
-                .estado(reserva.getEstado())
-                .observaciones(reserva.getObservaciones())
-                .build();
+
+    // ============================
+    // CAMBIAR ESTADO (ADMIN)
+    // ============================
+    public Reserva updateEstado(Long id, String estado) {
+
+        Reserva r = reservaRepository.findById(id).orElse(null);
+        if (r == null) return null;
+
+        try {
+            EstadoReserva nuevo = EstadoReserva.valueOf(estado.toUpperCase());  // ✔ String → ENUM
+            r.setEstado(nuevo);
+        } catch (IllegalArgumentException e) {
+            return null; // Estado inválido
+        }
+
+        return reservaRepository.save(r);
     }
 }

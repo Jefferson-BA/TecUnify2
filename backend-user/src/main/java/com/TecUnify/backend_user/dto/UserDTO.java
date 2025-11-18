@@ -1,18 +1,28 @@
 package com.TecUnify.backend_user.dto;
 
-import com.TecUnify.backend_user.model.Role;
+import com.TecUnify.backend_user.model.User;
 import lombok.*;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UserDTO {
     private Long id;
     private String email;
     private String firstName;
     private String lastName;
     private String phone;
-    private Role role;
-    private Boolean active;
+    private String role;
+
+    public static UserDTO fromEntity(User u) {
+        return UserDTO.builder()
+                .id(u.getId())
+                .email(u.getEmail())
+                .firstName(u.getFirstName())
+                .lastName(u.getLastName())
+                .phone(u.getPhone())
+                .role(u.getRole().name())
+                .build();
+    }
 }

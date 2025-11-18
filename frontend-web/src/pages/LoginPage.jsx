@@ -1,126 +1,144 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Mail, Lock } from 'lucide-react';
-import { GoogleLogin } from '@react-oauth/google';
-import { authAPI } from '../services/api';
+import React, { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-function LoginPage({ onBack, onLoginSuccess, onSwitchToRegister }) {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [error, setError] = useState('');
+export default function LoginPage({ onBack }) {
+  const navigate = useNavigate();
+  const API_BASE = "http://localhost:8081/api";
+
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checked, setChecked] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    setError('');
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // ✅ Check login solo una vez
+  useEffect(() => {
+    if (checked) return; // Evitar múltiples checks
     
-    try {
-      const response = await authAPI.login(formData);
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      alert(`¡Login exitoso! Bienvenido ${user.firstName || user.email}`);
-      onLoginSuccess(user);
-    } catch (err) {
-      setError(err.response?.data || 'Error al iniciar sesión');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const user = localStorage.getItem("user");
+    const role = localStorage.getItem("role");
 
+    if (user && role) {
+      if (role === "ADMIN") {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/home", { replace: true });
+      }
+    }
+    setChecked(true);
+  }, []); // Sin dependencias - solo al montar
+
+  // ============================================================
+  // 🔹 LOGIN CON GOOGLE REAL
+  // ============================================================
   const handleGoogleSuccess = async (credentialResponse) => {
-    setLoading(true);
-    setError('');
-    
     try {
-      // Decodificar el token JWT de Google para obtener información del usuario
-      const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
-      
-      console.log('Token de Google recibido:', credentialResponse.credential);
-      console.log('Información del usuario:', payload);
-      
-      // Crear usuario simulado basado en la información de Google
-      const mockUser = {
-        email: payload.email,
-        firstName: payload.given_name || 'Usuario',
-        lastName: payload.family_name || 'Google',
-        picture: payload.picture,
-        googleId: payload.sub
-      };
-      
-      // Simular login exitoso (temporal para testing)
-      localStorage.setItem('token', 'mock-google-token-' + Date.now());
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      alert(`¡Login exitoso con Google! Bienvenido ${mockUser.firstName} ${mockUser.lastName}`);
-      onLoginSuccess(mockUser);
-      
-      // TODO: Implementar llamada real al backend cuando esté listo
-      // const response = await authAPI.loginWithGoogle(credentialResponse.credential);
-      // const { token, user } = response.data;
-      
-    } catch (err) {
-      console.error('Error procesando token de Google:', err);
-      setError('Error al procesar la información de Google');
+      setLoading(true);
+      setError("");
+
+      // Decodificar JWT de Google
+      const base64Url = credentialResponse.credential.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      const googleUser = JSON.parse(jsonPayload);
+
+      console.log("Google User:", googleUser);
+
+      // Validar correo institucional
+      if (!googleUser.email || !googleUser.email.endsWith("@tecsup.edu.pe")) {
+        setError("❌ Solo se permite correo institucional @tecsup.edu.pe");
+        setLoading(false);
+        return;
+      }
+
+      // Enviar a backend
+      const response = await axios.post(`${API_BASE}/auth/google`, {
+        googleId: googleUser.sub,
+        email: googleUser.email,
+        firstName: googleUser.given_name || "",
+        lastName: googleUser.family_name || "",
+        picture: googleUser.picture,
+      });
+
+      console.log("Backend Response:", response.data);
+
+      const { user } = response.data;
+
+      // Guardar datos
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("email", user.email);
+      localStorage.setItem("role", user.role || "USER");
+      localStorage.setItem("userId", user.id);
+
+      // Redirigir según rol
+      if (user.role === "ADMIN") {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/home", { replace: true });
+      }
+    } catch (error) {
+      console.error("Error completo:", error);
+      setError(
+        "❌ " +
+        (error.response?.data?.message ||
+          error.response?.data ||
+          error.message ||
+          "Error al iniciar sesión")
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  // Error Google
   const handleGoogleError = () => {
-    setError('Error al iniciar sesión con Google');
+    setError("❌ Error al iniciar sesión con Google");
   };
 
+  // ============================================================
+  // 🔹 UI UNIFICADA
+  // ============================================================
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100">
-      {/* Card Principal con dos columnas */}
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-5xl w-full flex animate-scale-in">
-        
-        {/* Columna Izquierda - Formulario */}
+
+        {/* Columna izquierda */}
         <div className="w-full lg:w-1/2 p-8 md:p-12 relative">
-          {/* Botón Volver */}
-          <button 
-            onClick={onBack} 
-            className="absolute top-6 left-6 text-gray-600 hover:text-gray-900 transition"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+
+          {/* Botón volver */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="absolute top-6 left-6 text-gray-600 hover:text-gray-900 transition"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
 
           <div className="mt-8">
-            {/* Título */}
             <h1 className="text-3xl font-bold text-gray-900 mb-6">
               INICIAR SESIÓN
             </h1>
 
-            {/* Botón Google */}
+            {/* Google Login */}
             <div className="mb-4 w-full">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                theme="outline"
-                size="large"
-                text="signin_with"
-                shape="pill"
-                logo_alignment="left"
-                locale="es"
-              />
-            </div>
-
-            {/* Separador */}
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex-1 h-px bg-gray-300"></div>
-              <span className="text-gray-500 text-sm">o</span>
-              <div className="flex-1 h-px bg-gray-300"></div>
+              {!loading && (
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="outline"
+                  size="large"
+                  text="signin_with"
+                  shape="pill"
+                  locale="es"
+                />
+              )}
             </div>
 
             {/* Error */}
@@ -130,70 +148,24 @@ function LoginPage({ onBack, onLoginSuccess, onSwitchToRegister }) {
               </div>
             )}
 
-            {/* Formulario */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email */}
-              <div>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="tu-email@tecsup.edu.pe"
-                    className="w-full pl-10 pr-3 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-400 focus:outline-none text-sm text-gray-700"
-                  />
-                </div>
-              </div>
+            {/* Info */}
+            <p className="text-gray-600 text-sm mt-4">
+              Solo se permite acceso con correo institucional <b>@tecsup.edu.pe</b>
+            </p>
 
-              {/* Contraseña */}
-              <div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-3 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-400 focus:outline-none text-sm text-gray-700"
-                  />
-                </div>
-              </div>
-
-              {/* Botón Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-cyan-400 text-white py-3 rounded-full font-medium hover:bg-cyan-500 transition disabled:opacity-50 disabled:cursor-not-allowed mt-6 text-sm"
-              >
-                {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
-              </button>
-            </form>
-
-            {/* Link a Registro */}
-            <div className="mt-4 text-center">
-              <p className="text-gray-600 text-xs">
-                ¿No tienes cuenta?{' '}
-                <button 
-                  onClick={onSwitchToRegister} 
-                  className="text-cyan-500 font-semibold hover:underline"
-                >
-                  Regístrate aquí
-                </button>
+            {loading && (
+              <p className="text-blue-500 text-sm mt-2 font-semibold">
+                ⏳ Iniciando sesión...
               </p>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Columna Derecha - Imagen Tecsup */}
+        {/* Columna derecha */}
         <div className="hidden lg:block lg:w-1/2 relative">
-          <img 
-            src="/Rectangle 2.png" 
-            alt="Campus Tecsup" 
+          <img
+            src="/Rectangle 2.png"
+            alt="Campus Tecsup"
             className="w-full h-full object-cover"
           />
         </div>
@@ -201,16 +173,9 @@ function LoginPage({ onBack, onLoginSuccess, onSwitchToRegister }) {
 
       <style>{`
         @keyframes scaleIn {
-          from {
-            transform: scale(0.9);
-            opacity: 0;
-          }
-          to {
-            transform: scale(1);
-            opacity: 1;
-          }
+          from { transform: scale(0.9); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
         }
-
         .animate-scale-in {
           animation: scaleIn 0.4s ease-out;
         }
@@ -218,5 +183,3 @@ function LoginPage({ onBack, onLoginSuccess, onSwitchToRegister }) {
     </div>
   );
 }
-
-export default LoginPage;

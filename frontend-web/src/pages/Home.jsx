@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { InicioSection, HorarioSection, MisReservasSection, TecIASection, MiPerfilSection } from './DashboardSections';
+import { InicioSectionWrapper, HorarioSection, MisReservasSection, TecIASection, MiPerfilSection } from './DashboardSections';
 
 export default function HomePage({ user, onLogout }) {
   const [activeSection, setActiveSection] = useState('inicio');
@@ -8,7 +8,7 @@ export default function HomePage({ user, onLogout }) {
   const renderSection = () => {
     switch (activeSection) {
       case 'inicio':
-        return <InicioSection user={user} />;
+        return <InicioSectionWrapper user={user} />;
       case 'horario':
         return <HorarioSection />;
       case 'mis-reservas':
@@ -18,7 +18,7 @@ export default function HomePage({ user, onLogout }) {
       case 'mi-perfil':
         return <MiPerfilSection user={user} />;
       default:
-        return <InicioSection user={user} />;
+        return <InicioSectionWrapper user={user} />;
     }
   };
 
