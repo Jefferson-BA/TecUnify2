@@ -1,6 +1,6 @@
 # Proyecto Principal - TecUnify
 
-holaArquitectura completa con múltiples servicios: backend de administración (Django), backend de usuarios (Spring Boot), frontend web (React) y aplicación móvil (Kotlin/Android).
+Arquitectura completa con múltiples servicios: backend de administración (Django), backend de usuarios (Spring Boot), frontend web (React) y aplicación móvil (Kotlin/Android).
 
 ## Estructura del Proyecto
 

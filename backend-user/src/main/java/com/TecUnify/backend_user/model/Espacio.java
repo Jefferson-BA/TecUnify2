@@ -2,6 +2,7 @@ package com.TecUnify.backend_user.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,40 +17,46 @@ public class Espacio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 150)
     private String nombre;
 
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Enumerated(EnumType.STRING)
-    private TipoEspacio tipo;
+    @Column(nullable = false, length = 200)
+    private String ubicacion;
 
     @Column(nullable = false)
     private Integer capacidad;
 
-    @Column(nullable = false)
-    private Double precioHora;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tipo_espacio_id")
+    private TipoEspacio tipoEspacio;
 
-    private String ubicacion;
+    @Column(name = "precio_por_hora", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal precioPorHora = BigDecimal.ZERO;
 
-    @Column(nullable = false)
-    private Boolean disponible = true;
+    @Column(columnDefinition = "TEXT")
+    private String equipamiento;
 
-    @OneToMany(mappedBy = "espacio", cascade = CascadeType.ALL)
+    @Column(name = "imagen_url", length = 500)
+    private String imagenUrl;
+
+    @Builder.Default
+    private Boolean activo = true;
+
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion;
+
+    @OneToMany(mappedBy = "espacio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Reserva> reservas;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "espacio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<HorarioDisponibilidad> horariosDisponibilidad;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        fechaCreacion = LocalDateTime.now();
     }
 }

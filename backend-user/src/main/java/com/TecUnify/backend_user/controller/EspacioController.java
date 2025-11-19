@@ -2,49 +2,80 @@ package com.TecUnify.backend_user.controller;
 
 import com.TecUnify.backend_user.dto.EspacioDTO;
 import com.TecUnify.backend_user.model.Espacio;
-import com.TecUnify.backend_user.model.TipoEspacio;
 import com.TecUnify.backend_user.service.EspacioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/espacios")
-@RequiredArgsConstructor
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "*")
 public class EspacioController {
+
     private final EspacioService espacioService;
 
     @GetMapping
-    public ResponseEntity<List<EspacioDTO>> getAllEspacios() {
-        return ResponseEntity.ok(espacioService.getAllEspacios());
+    public ResponseEntity<List<EspacioDTO>> listar() {
+        return ResponseEntity.ok(espacioService.getAllActivos());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EspacioDTO> getEspacioById(@PathVariable Long id) {
-        return ResponseEntity.ok(espacioService.getEspacioById(id));
-    }
-
-    @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<List<EspacioDTO>> getEspaciosByTipo(@PathVariable TipoEspacio tipo) {
-        return ResponseEntity.ok(espacioService.getEspaciosByTipo(tipo));
-    }
-
-    @GetMapping("/disponibles")
-    public ResponseEntity<List<EspacioDTO>> getEspaciosDisponibles() {
-        return ResponseEntity.ok(espacioService.getEspaciosDisponibles());
+    public ResponseEntity<?> obtener(@PathVariable Long id) {
+        EspacioDTO dto = espacioService.getById(id);
+        return dto != null ? ResponseEntity.ok(dto)
+                : ResponseEntity.status(404).body("Espacio no encontrado");
     }
 
     @PostMapping
-    public ResponseEntity<EspacioDTO> createEspacio(@RequestBody Espacio espacio) {
-        return ResponseEntity.ok(espacioService.createEspacio(espacio));
+    public ResponseEntity<?> crear(@RequestBody EspacioDTO dto,
+                                   @RequestHeader("X-User-Role") String role) {
+        if (!"ADMIN".equals(role))
+            return ResponseEntity.status(403).body("Solo administradores");
+
+        return ResponseEntity.status(201).body(espacioService.create(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EspacioDTO> updateEspacio(
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody EspacioDTO dto,
+                                        @RequestHeader("X-User-Role") String role) {
+        if (!"ADMIN".equals(role))
+            return ResponseEntity.status(403).body("Solo administradores");
+
+        Espacio espacio = espacioService.update(id, dto);
+        return espacio != null ? ResponseEntity.ok(espacio)
+                : ResponseEntity.status(404).body("Espacio no encontrado");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminar(@PathVariable Long id,
+                                      @RequestHeader("X-User-Role") String role) {
+        if (!"ADMIN".equals(role))
+            return ResponseEntity.status(403).body("Solo administradores");
+
+        espacioService.delete(id);
+        return ResponseEntity.ok("Eliminado");
+    }
+
+    // Imagen
+    @PostMapping("/{id}/imagen")
+    public ResponseEntity<?> subirImagen(
             @PathVariable Long id,
-            @RequestBody Espacio espacioDetails) {
-        return ResponseEntity.ok(espacioService.updateEspacio(id, espacioDetails));
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("X-User-Role") String role) {
+
+        if (!"ADMIN".equals(role))
+            return ResponseEntity.status(403).body("Solo administradores");
+
+        // por ahora solo guardamos un link fake
+        String fakeUrl = "https://fake-storage.com/" + file.getOriginalFilename();
+
+        Espacio e = espacioService.updateImagen(id, fakeUrl);
+
+        return e != null ? ResponseEntity.ok("Imagen actualizada")
+                : ResponseEntity.status(404).body("Espacio no encontrado");
     }
 }

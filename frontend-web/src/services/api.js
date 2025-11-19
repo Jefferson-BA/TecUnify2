@@ -179,34 +179,5 @@ export const reservaAPI = {
     return response;
   }
 };
-// Nueva función para obtener los espacios
-export const getEspacios = async () => {
-  try {
-    // Usamos authApi para llamar al endpoint /espacios
-    // Esto automáticamente incluirá el token de autenticación.
-    const response = await authApi.get('/espacios');
-    return response.data;
-  } catch (error) {
-    // Si hay un error (ej. el token expiró), lo mostramos en consola.
-    console.error('Error al obtener los espacios:', error.response?.data || error.message);
-    throw error;
-  }
-};
-export const updateUserProfile = async (userData) => {
-  try {
-    // --- NOTA ---
-    // Cuando tu backend esté listo, la verdadera línea será algo como:
-    // const response = await authApi.put('/users/me', userData);
-    // return response.data;
 
-    // Por ahora, solo simulamos una respuesta exitosa
-    console.log('Simulando actualización de perfil:', userData);
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simula espera de red
-    return userData; // Devuelve los datos enviados como si fuera un éxito
-
-  } catch (error) {
-    console.error('Error al actualizar el perfil:', error.response?.data || error.message);
-    throw error;
-  }
-};
 export default api;
