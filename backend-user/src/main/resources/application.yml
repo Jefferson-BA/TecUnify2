@@ -17,12 +17,12 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         jdbc:
-          time_zone: UTC
+          time_zone: America/Lima
 
   jackson:
     serialization:
       write-dates-as-timestamps: false
-    time-zone: UTC
+    time-zone: America/Lima
 
 server:
   port: 8081

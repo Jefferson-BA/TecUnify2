@@ -79,8 +79,16 @@ export const reservationAPI = {
   // Crear una nueva reserva
   crearReserva: async (reservaData) => {
     try {
+      // OBTENER EL EMAIL DEL USUARIO LOGUEADO
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const email = user.email;
+
+      if (!email) throw new Error("No se encontró el email del usuario");
+
       console.log('Enviando reserva al backend:', reservaData);
-      const response = await fetch(`${API_BASE_URL}/api/reservas`, {
+
+      // AGREGAR ?email=... A LA URL
+      const response = await fetch(`${API_BASE_URL}/api/reservas?email=${email}`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(reservaData)
@@ -97,21 +105,9 @@ export const reservationAPI = {
       return result;
     } catch (error) {
       console.error('Error creando reserva:', error);
-      // Si es un error de conexión, simular la reserva
-      if (error.message.includes('fetch')) {
-        console.warn('Error de conexión, simulando reserva');
-        return {
-          id: Date.now(),
-          ...reservaData,
-          estado: 'PENDIENTE',
-          fechaCreacion: new Date().toISOString(),
-          mensaje: 'Reserva simulada - Error de conexión'
-        };
-      }
       throw error;
     }
   },
-
   // Obtener reservas del usuario actual
   getMisReservas: async () => {
     try {

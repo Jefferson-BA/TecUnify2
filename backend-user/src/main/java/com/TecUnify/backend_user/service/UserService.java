@@ -12,11 +12,56 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class UserService {
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.TecUnify.backend_user.repository.ReservaRepository reservaRepository;
+
+    // Obtener Perfil Completo con Estadísticas
+    public com.TecUnify.backend_user.dto.UserProfileDTO getUserProfile(String email) {
+        User user = findByEmail(email);
+        if (user == null)
+            return null;
+
+        // Obtener todas las reservas del usuario
+        java.util.List<com.TecUnify.backend_user.model.Reserva> reservas = reservaRepository
+                .findByUsuarioId(user.getId());
+
+        int total = reservas.size();
+        int activas = (int) reservas.stream()
+                .filter(r -> r.getEstado() == com.TecUnify.backend_user.model.EstadoReserva.PENDIENTE ||
+                        r.getEstado() == com.TecUnify.backend_user.model.EstadoReserva.CONFIRMADA)
+                .count();
+
+        // Construir DTO
+        return com.TecUnify.backend_user.dto.UserProfileDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phone(user.getPhone())
+                .role(user.getRole().name())
+                .totalReservas(total)
+                .reservasActivas(activas)
+                .horasReservadas(total * 2) // Estimado: 2 horas por reserva promedio
+                .build();
+    }
+
+    // Actualizar solo datos de perfil (Teléfono, Nombre)
+    public UserDTO updateProfile(String email, com.TecUnify.backend_user.dto.UserProfileDTO dto) {
+        User user = findByEmail(email);
+        if (user == null)
+            return null;
+
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setPhone(dto.getPhone());
+
+        return com.TecUnify.backend_user.dto.UserDTO.fromEntity(userRepository.save(user));
+    }
 
     private final UserRepository userRepository;
 
     // ==========================
-    //  AUTH GOOGLE (ya tenías)
+    // AUTH GOOGLE (ya tenías)
     // ==========================
     public User findOrCreateGoogleUser(String googleId, String email, String firstName, String lastName) {
 
@@ -42,7 +87,7 @@ public class UserService {
     }
 
     // ==========================
-    //  CRUD PARA UserController
+    // CRUD PARA UserController
     // ==========================
 
     public List<UserDTO> getAllUsers() {
@@ -76,7 +121,7 @@ public class UserService {
     }
 
     // ==========================
-    //  Extras
+    // Extras
     // ==========================
 
     public User findByEmail(String email) {

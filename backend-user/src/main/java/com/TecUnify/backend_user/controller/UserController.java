@@ -47,5 +47,21 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.ok("Usuario eliminado");
     }
-}
 
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(@RequestParam("email") String email) {
+        com.TecUnify.backend_user.dto.UserProfileDTO profile = userService.getUserProfile(email);
+        if (profile == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestParam("email") String email,
+            @RequestBody com.TecUnify.backend_user.dto.UserProfileDTO dto) {
+        com.TecUnify.backend_user.dto.UserDTO updated = userService.updateProfile(email, dto);
+        if (updated == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(updated);
+    }
+}

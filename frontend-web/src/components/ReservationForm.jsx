@@ -28,11 +28,11 @@ export default function ReservationForm({ espacio, onBack, onReservationSuccess 
   // Calcular precio estimado
   const calcularPrecio = () => {
     if (!formData.hora_inicio || !formData.hora_fin) return 0;
-    
+
     const inicio = new Date(`2000-01-01T${formData.hora_inicio}`);
     const fin = new Date(`2000-01-01T${formData.hora_fin}`);
     const horas = (fin - inicio) / (1000 * 60 * 60);
-    
+
     return horas * (espacio?.precio_por_hora || 0);
   };
 
@@ -83,21 +83,21 @@ export default function ReservationForm({ espacio, onBack, onReservationSuccess 
 
     try {
       // Validaciones
-      if (!formData.fecha_reserva || !formData.hora_inicio || !formData.hora_fin || !formData.motivo) {
-        throw new Error('Todos los campos son obligatorios');
+      if (formData.hora_fin <= formData.hora_inicio) {
+        throw new Error('La hora de fin debe ser posterior a la hora de inicio');
       }
 
       // Validar que la fecha no sea anterior a hoy
       const fechaReserva = new Date(formData.fecha_reserva);
-      
+
       // Validar que la fecha sea válida
       if (isNaN(fechaReserva.getTime())) {
         throw new Error('La fecha seleccionada no es válida');
       }
-      
+
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
-      
+
       if (fechaReserva < hoy) {
         throw new Error('La fecha de reserva no puede ser anterior a hoy');
       }
@@ -141,11 +141,11 @@ export default function ReservationForm({ espacio, onBack, onReservationSuccess 
       // Llamar a la API real
       console.log('Enviando reserva:', reservaData);
       const response = await reservationAPI.crearReserva(reservaData);
-      
+
       console.log('Respuesta de la API:', response);
-      
+
       setSuccess(true);
-      
+
       // Llamar callback de éxito después de 2 segundos
       setTimeout(() => {
         onReservationSuccess && onReservationSuccess(response);
@@ -196,7 +196,7 @@ export default function ReservationForm({ espacio, onBack, onReservationSuccess 
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Volver</span>
           </button>
-          
+
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Reservar Espacio</h1>
           <p className="text-gray-600">Completa los detalles de tu reserva</p>
         </div>
