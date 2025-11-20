@@ -24,8 +24,9 @@ public class ReservaController {
     @GetMapping("/mi")
     public ResponseEntity<?> misMisReservas(@RequestParam("email") String email) {
         User user = userService.findByEmail(email);
-        if (user == null) return ResponseEntity.status(404).body("Usuario no encontrado");
-        
+        if (user == null)
+            return ResponseEntity.status(404).body("Usuario no encontrado");
+
         List<ReservaDTO> reservas = reservaService.getByUserId(user.getId());
         return ResponseEntity.ok(reservas);
     }
@@ -44,8 +45,9 @@ public class ReservaController {
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody ReservaDTO dto, @RequestParam("email") String email) {
         User user = userService.findByEmail(email);
-        if (user == null) return ResponseEntity.status(404).body("Usuario no encontrado");
-        
+        if (user == null)
+            return ResponseEntity.status(404).body("Usuario no encontrado");
+
         dto.setUserId(user.getId());
         Reserva r = reservaService.create(dto);
         return ResponseEntity.status(201).body(r);
@@ -55,10 +57,12 @@ public class ReservaController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> cancelar(@PathVariable Long id, @RequestParam("email") String email) {
         User user = userService.findByEmail(email);
-        if (user == null) return ResponseEntity.status(404).body("Usuario no encontrado");
+        if (user == null)
+            return ResponseEntity.status(404).body("Usuario no encontrado");
 
         Reserva r = reservaService.getById(id);
-        if (r == null) return ResponseEntity.status(404).body("Reserva no encontrada");
+        if (r == null)
+            return ResponseEntity.status(404).body("Reserva no encontrada");
         if (!r.getUsuario().getId().equals(user.getId())) {
             return ResponseEntity.status(403).body("No puedes cancelar esta reserva");
         }
@@ -70,11 +74,59 @@ public class ReservaController {
     // Admin: cambiar estado de reserva
     @PutMapping("/{id}/estado")
     public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestParam("estado") String estado,
-                                           @RequestHeader("X-User-Role") String role) {
+            @RequestHeader("X-User-Role") String role) {
         if (!"ADMIN".equals(role)) {
             return ResponseEntity.status(403).body("Solo administradores");
         }
         Reserva r = reservaService.updateEstado(id, estado);
         return r != null ? ResponseEntity.ok(r) : ResponseEntity.status(404).body("No encontrada");
+    }
+
+    @lombok.Data
+    static class ReprogramarRequest {
+        private java.time.LocalDate nuevaFecha;
+        private java.time.LocalTime nuevaHoraInicio;
+        private java.time.LocalTime nuevaHoraFin;
+    }
+
+    @PutMapping("/{id}/reprogramar")
+    public ResponseEntity<?> reprogramar(@PathVariable Long id,
+            @RequestBody ReprogramarRequest req,
+            @RequestParam("email") String email) {
+
+        User user = userService.findByEmail(email);
+        if (user == null)
+            return ResponseEntity.status(404).body("Usuario no encontrado");
+
+        Reserva r = reservaService.getById(id);
+        if (r == null)
+            return ResponseEntity.status(404).body("Reserva no encontrada");
+
+        if (!r.getUsuario().getId().equals(user.getId())) {
+            return ResponseEntity.status(403).body("No puedes editar esta reserva");
+        }
+
+        // --- NUEVA VALIDACIÓN ---
+        // Verificar si el nuevo horario choca con otra reserva
+        boolean ocupado = reservaService.verificarConflicto(
+                r.getEspacio().getId(),
+                r.getId(),
+                req.getNuevaFecha(),
+                req.getNuevaHoraInicio(),
+                req.getNuevaHoraFin());
+
+        if (ocupado) {
+            return ResponseEntity.badRequest().body("El horario seleccionado ya está ocupado por otra reserva.");
+        }
+        // ------------------------
+
+        r.setFechaReserva(req.getNuevaFecha());
+        r.setHoraInicio(req.getNuevaHoraInicio());
+        r.setHoraFin(req.getNuevaHoraFin());
+        r.setEstado(com.TecUnify.backend_user.model.EstadoReserva.PENDIENTE);
+
+        reservaService.create(com.TecUnify.backend_user.dto.ReservaDTO.fromEntity(r));
+
+        return ResponseEntity.ok(com.TecUnify.backend_user.dto.ReservaDTO.fromEntity(r));
     }
 }

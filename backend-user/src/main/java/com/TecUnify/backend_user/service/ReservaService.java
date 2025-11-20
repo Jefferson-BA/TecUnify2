@@ -36,7 +36,8 @@ public class ReservaService {
 
         User user = userRepository.findById(dto.getUserId()).orElse(null);
         Espacio espacio = espacioRepository.findById(dto.getEspacioId()).orElse(null);
-        if (user == null || espacio == null) return null;
+        if (user == null || espacio == null)
+            return null;
 
         Reserva r = new Reserva();
         r.setUsuario(user);
@@ -65,14 +66,15 @@ public class ReservaService {
     public void delete(Long id) {
         reservaRepository.deleteById(id);
     }
+
     public void cancelarReserva(Long id) {
         Reserva r = reservaRepository.findById(id).orElse(null);
-        if (r == null) return;
+        if (r == null)
+            return;
 
-        r.setEstado(EstadoReserva.CANCELADA);  // ← usa tu ENUM
+        r.setEstado(EstadoReserva.CANCELADA); // ← usa tu ENUM
         reservaRepository.save(r);
     }
-
 
     // ============================
     // CAMBIAR ESTADO (ADMIN)
@@ -80,15 +82,25 @@ public class ReservaService {
     public Reserva updateEstado(Long id, String estado) {
 
         Reserva r = reservaRepository.findById(id).orElse(null);
-        if (r == null) return null;
+        if (r == null)
+            return null;
 
         try {
-            EstadoReserva nuevo = EstadoReserva.valueOf(estado.toUpperCase());  // ✔ String → ENUM
+            EstadoReserva nuevo = EstadoReserva.valueOf(estado.toUpperCase()); // ✔ String → ENUM
             r.setEstado(nuevo);
         } catch (IllegalArgumentException e) {
             return null; // Estado inválido
         }
 
         return reservaRepository.save(r);
+    }
+
+    public Reserva actualizar(Reserva reserva) {
+        return reservaRepository.save(reserva);
+    }
+
+    public boolean verificarConflicto(Long espacioId, Long reservaId, java.time.LocalDate fecha,
+            java.time.LocalTime inicio, java.time.LocalTime fin) {
+        return reservaRepository.existsConflict(espacioId, reservaId, fecha, inicio, fin);
     }
 }
