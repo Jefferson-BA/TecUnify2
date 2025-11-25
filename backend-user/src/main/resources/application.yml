@@ -1,11 +1,11 @@
 spring:
   application:
-    name: backend-user
+    name: backend_user
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/backend_user
+    url: jdbc:postgresql://localhost:1409/backend_user
     username: postgres
-    password: NuevaPassword123
+    password: admin
 
     driver-class-name: org.postgresql.Driver
 
