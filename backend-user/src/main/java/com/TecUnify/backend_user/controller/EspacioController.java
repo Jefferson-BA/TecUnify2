@@ -1,12 +1,15 @@
 package com.TecUnify.backend_user.controller;
 
 import com.TecUnify.backend_user.dto.EspacioDTO;
+import com.TecUnify.backend_user.events.EspacioEventEmitter;
 import com.TecUnify.backend_user.model.Espacio;
 import com.TecUnify.backend_user.service.EspacioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -78,4 +81,12 @@ public class EspacioController {
         return e != null ? ResponseEntity.ok("Imagen actualizada")
                 : ResponseEntity.status(404).body("Espacio no encontrado");
     }
+    @Autowired
+    private EspacioEventEmitter eventEmitter;
+
+    @GetMapping("/stream")
+    public SseEmitter stream() {
+        return eventEmitter.subscribe();
+    }
+
 }

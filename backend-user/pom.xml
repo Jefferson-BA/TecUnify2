@@ -101,7 +101,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-		<!-- Spring Security removed: unauthenticated API as requested -->
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

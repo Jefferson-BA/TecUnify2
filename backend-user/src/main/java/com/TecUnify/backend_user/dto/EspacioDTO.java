@@ -16,6 +16,12 @@ public class EspacioDTO {
     private Boolean activo;
     private String imagenUrl;
 
+    private String ubicacion;
+    private String tipoEspacioNombre;
+    private Double precioHora;
+
+    private String estado; // 🔥 NUEVO
+
     public static EspacioDTO fromEntity(Espacio e) {
         return EspacioDTO.builder()
                 .id(e.getId())
@@ -24,6 +30,11 @@ public class EspacioDTO {
                 .capacidad(e.getCapacidad())
                 .activo(e.getActivo())
                 .imagenUrl(e.getImagenUrl())
+                .ubicacion(e.getUbicacion())
+                .tipoEspacioNombre(
+                        e.getTipoEspacio() != null ? e.getTipoEspacio().getNombre() : "-"
+                )
+                .precioHora(e.getPrecioPorHora().doubleValue())
                 .build();
     }
 
@@ -35,6 +46,7 @@ public class EspacioDTO {
         e.setCapacidad(this.capacidad);
         e.setActivo(this.activo != null ? this.activo : true);
         e.setImagenUrl(this.imagenUrl);
+        e.setUbicacion(this.ubicacion);
         return e;
     }
 }

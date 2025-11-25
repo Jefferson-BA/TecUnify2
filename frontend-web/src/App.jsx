@@ -1,42 +1,38 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+
+import LandingPage from "./pages/LandingPage";   // ⭐ nueva landing page
 import LoginPage from "./pages/LoginPage";
-import AdminDashboard from "./pages/AdminDashboard";
-import HomePage from "./pages/HomePage";
-import "./App.css";
+
+import DashboardLayout from "./dashboard/DashboardLayout";
+
+import Inicio from "./dashboard/pages/Inicio";
+import Espacios from "./dashboard/pages/Espacios";
+import MisReservas from "./dashboard/pages/MisReservas";
+import Horarios from "./dashboard/pages/Horarios";
+import TecIA from "./dashboard/pages/TecIA";
 
 function App() {
   return (
     <Routes>
-      {/* Rutas públicas */}
-      <Route path="/" element={<LoginPage />} />
+
+      {/* ⭐ PAGINA PRINCIPAL (Landing antes de login) */}
+      <Route path="/" element={<LandingPage />} />
+
+      {/* LOGIN */}
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Rutas protegidas - Admin */}
-      <Route
-        path="/admin/dashboard"
-        element={
-          localStorage.getItem("role") === "ADMIN" ? (
-            <AdminDashboard />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
+      {/* DASHBOARD PRINCIPAL */}
+      <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route path="inicio" element={<Inicio />} />
+        <Route path="espacios" element={<Espacios />} />
+        <Route path="reservas" element={<MisReservas />} />
+        <Route path="horarios" element={<Horarios />} />
+        <Route path="chat" element={<TecIA />} />
+      </Route>
 
-      {/* Rutas protegidas - Usuario */}
-      <Route
-        path="/home"
-        element={
-          localStorage.getItem("user") ? (
-            <HomePage />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-
-      {/* 404 */}
+      {/* 404 → redirigir a la landing page */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 }

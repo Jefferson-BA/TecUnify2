@@ -1,6 +1,7 @@
 package com.TecUnify.backend_user.controller;
 
 import com.TecUnify.backend_user.dto.ReservaDTO;
+import com.TecUnify.backend_user.events.ReservaEventEmitter;
 import com.TecUnify.backend_user.model.Reserva;
 import com.TecUnify.backend_user.model.User;
 import com.TecUnify.backend_user.service.ReservaService;
@@ -8,6 +9,7 @@ import com.TecUnify.backend_user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -19,13 +21,20 @@ public class ReservaController {
 
     private final ReservaService reservaService;
     private final UserService userService;
+    private final ReservaEventEmitter reservaEventEmitter;
+
+    // 🔵 Stream SSE para eventos de reservas (auto cancelación, etc.)
+    @GetMapping("/stream")
+    public SseEmitter streamReservas() {
+        return reservaEventEmitter.subscribe();
+    }
 
     // Usuario: ver solo sus reservas
     @GetMapping("/mi")
     public ResponseEntity<?> misMisReservas(@RequestParam("email") String email) {
         User user = userService.findByEmail(email);
         if (user == null) return ResponseEntity.status(404).body("Usuario no encontrado");
-        
+
         List<ReservaDTO> reservas = reservaService.getByUserId(user.getId());
         return ResponseEntity.ok(reservas);
     }
@@ -45,7 +54,7 @@ public class ReservaController {
     public ResponseEntity<?> crear(@RequestBody ReservaDTO dto, @RequestParam("email") String email) {
         User user = userService.findByEmail(email);
         if (user == null) return ResponseEntity.status(404).body("Usuario no encontrado");
-        
+
         dto.setUserId(user.getId());
         Reserva r = reservaService.create(dto);
         return ResponseEntity.status(201).body(r);

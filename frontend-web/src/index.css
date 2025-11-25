@@ -1,3 +1,84 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===================================== */
+/*            PALETA GLOBAL              */
+/* ===================================== */
+
+/* --- MODO CLARO --- */
+:root {
+  --bg-main: #f8fafc;
+  --bg-navbar: #ffffff;
+  --bg-sidebar: #ffffff;
+  --text-main: #111827;
+  --border-main: #e5e7eb;
+
+  --card-bg: #ffffff;
+  --text-color: #111827;
+  --border-color: #e5e7eb;
+}
+
+/* --- MODO OSCURO --- */
+html.dark {
+  --bg-main: #0f172a;
+  --bg-navbar: #1a1f2b;
+  --bg-sidebar: #1a1f2b;
+  --text-main: #f3f4f6;
+  --border-main: #374151;
+
+  --card-bg: #1f2937;
+  --text-color: #f3f4f6;
+  --border-color: #374151;
+}
+
+/* ===================================== */
+/*       FORZAR BOOTSTRAP A OBEDECER     */
+/* ===================================== */
+
+/* ❗ Evitamos romper gradientes
+   Solo inputs y selects mantienen el override */
+input,
+select {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* BADGES */
+.badge {
+  color: #ffffff !important;
+}
+
+/* ===================================== */
+/*           NAVBAR & SIDEBAR            */
+/* ===================================== */
+
+.navbar-tec {
+  background-color: var(--bg-navbar) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-main) !important;
+}
+
+/* Sidebar sí usa override, está bien */
+.sidebar-tec {
+  background-color: var(--bg-sidebar) !important;
+  color: var(--text-main) !important;
+  border-right: 1px solid var(--border-main) !important;
+}
+
+/* ===================================== */
+/*         CONTENIDO PRINCIPAL           */
+/* ===================================== */
+
+/* 🔥 ESTA ES LA LÍNEA QUE ROMPÍA TODO
+   Ahora respeta gradientes de los componentes */
+.main-bg {
+  background-color: var(--bg-main); /* SIN !important */
+  color: var(--text-main);
+}
+
+/* Extra: respeta gradientes internos */
+.main-bg > * {
+  background-color: transparent;
+}

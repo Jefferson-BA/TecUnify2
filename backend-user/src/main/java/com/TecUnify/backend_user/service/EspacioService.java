@@ -2,7 +2,10 @@ package com.TecUnify.backend_user.service;
 
 import com.TecUnify.backend_user.dto.EspacioDTO;
 import com.TecUnify.backend_user.model.Espacio;
+import com.TecUnify.backend_user.model.EstadoReserva;
+import com.TecUnify.backend_user.model.Reserva;
 import com.TecUnify.backend_user.repository.EspacioRepository;
+import com.TecUnify.backend_user.repository.ReservaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +17,28 @@ import java.util.stream.Collectors;
 public class EspacioService {
 
     private final EspacioRepository espacioRepository;
+    private final ReservaRepository reservaRepository; // ✔ NECESARIO
 
-    // Obtener todos los espacios activos
+    // =============================
+    //    LISTAR ESPACIOS ACTIVOS
+    // =============================
     public List<EspacioDTO> getAllActivos() {
         return espacioRepository.findByActivoTrue().stream()
-                .map(EspacioDTO::fromEntity)
+                .map(e -> {
+
+                    EspacioDTO dto = EspacioDTO.fromEntity(e);
+
+                    // Buscar reservas activas o pendientes
+                    List<Reserva> activas = reservaRepository
+                            .findByEspacioIdAndEstadoIn(
+                                    e.getId(),
+                                    List.of(EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA)
+                            );
+
+                    dto.setEstado(activas.isEmpty() ? "Disponible" : "Ocupado");
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 

@@ -1,6 +1,7 @@
 package com.TecUnify.backend_user.service;
 
 import com.TecUnify.backend_user.dto.ReservaDTO;
+import com.TecUnify.backend_user.events.EspacioEventEmitter;
 import com.TecUnify.backend_user.model.*;
 import com.TecUnify.backend_user.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,8 @@ public class ReservaService {
     private final ReservaRepository reservaRepository;
     private final UserRepository userRepository;
     private final EspacioRepository espacioRepository;
+
+    private final EspacioEventEmitter eventEmitter;
 
     public List<ReservaDTO> getByUserId(Long userId) {
         return reservaRepository.findByUsuarioId(userId)
@@ -46,16 +49,21 @@ public class ReservaService {
         r.setHoraFin(dto.getHoraFin());
         r.setMotivo(dto.getMotivo());
         r.setObservaciones(dto.getObservaciones());
-
-        // ✔ Estado siempre inicia en PENDIENTE
         r.setEstado(EstadoReserva.PENDIENTE);
 
-        // Precio
         if (dto.getPrecioTotal() != null) {
             r.setPrecioTotal(BigDecimal.valueOf(dto.getPrecioTotal()));
         }
 
-        return reservaRepository.save(r);
+        Reserva nueva = reservaRepository.save(r);
+
+        // 🔥 Notificar reserva creada
+        eventEmitter.broadcast("reserva-creada");
+
+        // 🔥 Notificar espacio reservado
+        eventEmitter.broadcast("ESPACIO_RESERVADO_" + espacio.getId());
+
+        return nueva;
     }
 
     public Reserva getById(Long id) {
@@ -65,30 +73,47 @@ public class ReservaService {
     public void delete(Long id) {
         reservaRepository.deleteById(id);
     }
+
+    // ❌ Cancelación por el usuario
     public void cancelarReserva(Long id) {
         Reserva r = reservaRepository.findById(id).orElse(null);
         if (r == null) return;
 
-        r.setEstado(EstadoReserva.CANCELADA);  // ← usa tu ENUM
+        r.setEstado(EstadoReserva.CANCELADA);
         reservaRepository.save(r);
+
+        // 🔥 Notificar cancelación
+        eventEmitter.broadcast("reserva-cancelada-auto");
+        eventEmitter.broadcast("ESPACIO_CANCELADO_" + r.getEspacio().getId());
     }
 
-
-    // ============================
-    // CAMBIAR ESTADO (ADMIN)
-    // ============================
+    // 🔥 ADMIN CAMBIA ESTADO
     public Reserva updateEstado(Long id, String estado) {
-
         Reserva r = reservaRepository.findById(id).orElse(null);
         if (r == null) return null;
 
         try {
-            EstadoReserva nuevo = EstadoReserva.valueOf(estado.toUpperCase());  // ✔ String → ENUM
+            EstadoReserva nuevo = EstadoReserva.valueOf(estado.toUpperCase());
             r.setEstado(nuevo);
         } catch (IllegalArgumentException e) {
-            return null; // Estado inválido
+            return null;
         }
 
-        return reservaRepository.save(r);
+        Reserva actualizado = reservaRepository.save(r);
+
+        // 🔵 Si se completó → liberar espacio
+        if (estado.equalsIgnoreCase("COMPLETADA")) {
+
+            eventEmitter.broadcast("espacio-disponible");
+            eventEmitter.broadcast("ESPACIO_DISPONIBLE_" + r.getEspacio().getId());
+
+            // 🔥 Notificar al usuario
+            eventEmitter.broadcast("reserva-completada");
+        }
+
+        // 🔵 Notificar cualquier otro cambio
+        eventEmitter.broadcast("ESPACIO_ESTADO_" + r.getEspacio().getId());
+
+        return actualizado;
     }
 }
