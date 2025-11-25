@@ -71,8 +71,7 @@ select {
 /*         CONTENIDO PRINCIPAL           */
 /* ===================================== */
 
-/* 🔥 ESTA ES LA LÍNEA QUE ROMPÍA TODO
-   Ahora respeta gradientes de los componentes */
+
 .main-bg {
   background-color: var(--bg-main); /* SIN !important */
   color: var(--text-main);
