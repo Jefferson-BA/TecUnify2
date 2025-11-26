@@ -14,17 +14,17 @@ import { NavLink } from "react-router-dom";
 export default function Sidebar({ collapsed, setCollapsed }) {
   return (
     <div
-      className={`sidebar-tec h-full shadow-xl transition-all duration-300
-        text-[var(--text-main)]
+      className={`
+        fixed top-0 left-0
+        h-screen
+        flex flex-col justify-between
+        shadow-xl transition-all duration-300
+        bg-[var(--bg-sidebar)]
+        border-r border-[var(--border-main)]
         ${collapsed ? "w-20" : "w-64"}
       `}
-      style={{
-        backgroundColor: "var(--bg-sidebar)",
-        borderRight: "1px solid var(--border-main)",
-        display: "flex",
-        flexDirection: "column",
-      }}
     >
+
       {/* HEADER */}
       <div
         className="flex items-center justify-between p-4 border-b"
@@ -38,9 +38,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-2 rounded-full transition"
+          className="p-2 rounded-full transition hover:scale-110"
           style={{
-            backgroundColor: "var(--bg-main)",
+            background: "var(--card-bg)",
             border: "1px solid var(--border-main)",
             color: "var(--text-main)",
           }}
@@ -49,24 +49,25 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         </button>
       </div>
 
-      {/* LINKS DEL MENÚ */}
-      <nav className="mt-6 space-y-2 flex-1">
-        <SidebarItem collapsed={collapsed} icon={<Home />} label="Inicio" to="/dashboard/inicio" />
-        <SidebarItem collapsed={collapsed} icon={<LayoutGrid />} label="Espacios" to="/dashboard/espacios" />
-        <SidebarItem collapsed={collapsed} icon={<ListCheck />} label="Mis Reservas" to="/dashboard/reservas" />
-        <SidebarItem collapsed={collapsed} icon={<Calendar />} label="Horarios" to="/dashboard/horarios" />
-        <SidebarItem collapsed={collapsed} icon={<MessageCircle />} label="TecIA Chat" to="/dashboard/chat" />
+      {/* MENÚ */}
+      <nav className="flex-1 mt-6 px-2 space-y-2 overflow-hidden">
+        <SidebarItem to="/dashboard/inicio" icon={<Home />} collapsed={collapsed} label="Inicio" />
+        <SidebarItem to="/dashboard/espacios" icon={<LayoutGrid />} collapsed={collapsed} label="Espacios" />
+        <SidebarItem to="/dashboard/reservas" icon={<ListCheck />} collapsed={collapsed} label="Mis Reservas" />
+        <SidebarItem to="/dashboard/horarios" icon={<Calendar />} collapsed={collapsed} label="Horarios" />
+        <SidebarItem to="/dashboard/chat" icon={<MessageCircle />} collapsed={collapsed} label="TecIA Chat" />
       </nav>
 
-      {/* PERFIL (ABAJO DEL TODO) */}
-      <div className="mb-4 px-2">
+      {/* BOTÓN FIJO ABAJO */}
+      <div className="px-2 pb-4">
         <SidebarItem
-          collapsed={collapsed}
-          icon={<User />}
-          label="Mi Perfil"
           to="/dashboard/perfil"
+          icon={<User />}
+          collapsed={collapsed}
+          label="Mi Perfil"
         />
       </div>
+
     </div>
   );
 }
@@ -80,15 +81,17 @@ function SidebarItem({ icon, label, to, collapsed }) {
         flex items-center gap-3 p-3 rounded-lg transition font-medium
         ${isActive
           ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-          : "hover:bg-gray-200 dark:hover:bg-gray-700"}
+          : "hover:bg-[var(--card-bg-2)] text-[var(--text-main)]"}
       `
       }
-      style={{
-        color: "var(--text-main)",
-      }}
+      style={{ color: "var(--text-main)" }}
     >
-      {icon}
+      <div className={`${collapsed ? "mx-auto" : ""}`}>
+        {icon}
+      </div>
+
       {!collapsed && <span>{label}</span>}
     </NavLink>
   );
 }
+

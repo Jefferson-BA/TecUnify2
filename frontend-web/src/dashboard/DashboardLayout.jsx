@@ -26,13 +26,22 @@ export default function DashboardLayout() {
       <div className="min-h-screen w-full flex bg-[var(--bg-main)] transition-colors">
   <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-  <div className="flex-1 flex flex-col">
+  <div className="min-h-screen w-full flex bg-[var(--bg-main)] transition-colors">
+
+  <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+
+  <div className="flex-1 flex flex-col"
+       style={{ paddingLeft: collapsed ? "5rem" : "16rem" }}>
+    
     <Navbar darkMode={dark} setDarkMode={setDark} />
 
-    <main className="flex-1 p-6 main-bg">
+    <main className="flex-1 p-6 overflow-y-auto">
       <Outlet key={location.pathname} />
     </main>
   </div>
+
+</div>
+
 </div>
 
     </ToastProvider>

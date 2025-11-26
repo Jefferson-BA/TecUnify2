@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===================================== */
-/*            PALETA GLOBAL              */
-/* ===================================== */
+/* ============================================================
+   PALETA GLOBAL – CLARO & OSCURO
+   ============================================================ */
 
 /* --- MODO CLARO --- */
 :root {
@@ -32,17 +32,21 @@ html.dark {
   --border-color: #374151;
 }
 
-/* ===================================== */
-/*       FORZAR BOOTSTRAP A OBEDECER     */
-/* ===================================== */
+/* ============================================================
+   INPUTS Y ELEMENTOS DE FORMULARIO
+   ============================================================ */
 
-/* ❗ Evitamos romper gradientes
-   Solo inputs y selects mantienen el override */
 input,
-select {
+select,
+textarea {
   background-color: var(--card-bg) !important;
   color: var(--text-color) !important;
   border-color: var(--border-color) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
 }
 
 /* BADGES */
@@ -50,9 +54,9 @@ select {
   color: #ffffff !important;
 }
 
-/* ===================================== */
-/*           NAVBAR & SIDEBAR            */
-/* ===================================== */
+/* ============================================================
+   NAVBAR & SIDEBAR
+   ============================================================ */
 
 .navbar-tec {
   background-color: var(--bg-navbar) !important;
@@ -60,24 +64,129 @@ select {
   border-color: var(--border-main) !important;
 }
 
-/* Sidebar sí usa override, está bien */
 .sidebar-tec {
   background-color: var(--bg-sidebar) !important;
   color: var(--text-main) !important;
   border-right: 1px solid var(--border-main) !important;
 }
 
-/* ===================================== */
-/*         CONTENIDO PRINCIPAL           */
-/* ===================================== */
+/* Botón de Mi Perfil fijado abajo */
+.sidebar-profile {
+  position: sticky;
+  bottom: 0;
+}
 
+/* ============================================================
+   CONTENIDO PRINCIPAL
+   ============================================================ */
 
 .main-bg {
-  background-color: var(--bg-main); /* SIN !important */
+  background-color: var(--bg-main);
   color: var(--text-main);
 }
 
-/* Extra: respeta gradientes internos */
 .main-bg > * {
   background-color: transparent;
+}
+
+/* ============================================================
+   PERFIL – MODO OSCURO
+   ============================================================ */
+
+.dark .perfil-container {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+.dark .perfil-label {
+  color: #cbd5e1 !important;
+}
+
+.dark .perfil-input {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+.dark .perfil-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ============================================================
+   HORARIOS – CALENDARIO
+   ============================================================ */
+
+.dark .calendar-container {
+  background-color: #0f172a !important; 
+  border-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+.calendar-title {
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.dark .calendar-title {
+  color: #e2e8f0 !important;
+}
+
+.dark .calendar-label {
+  color: #94a3b8 !important;
+}
+
+.day-cell {
+  background-color: #f1f5f9;
+  border: 1px solid var(--border-main);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: 0.2s ease-in-out;
+  color: var(--text-main);
+}
+
+.day-cell:hover {
+  transform: scale(1.03);
+}
+
+.day-cell-empty {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.dark .day-cell {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+.day-event {
+  background-color: #4c1d95 !important;
+  border-color: #7c3aed !important;
+  color: white !important;
+}
+
+.dark .day-event {
+  background-color: #6d28d9 !important;
+  border-color: #8b5cf6 !important;
+}
+
+/* ============================================================
+   SCROLLBAR PERSONALIZADO (BONUS)
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #64748b;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
