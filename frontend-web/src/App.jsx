@@ -10,6 +10,8 @@ import Espacios from "./dashboard/pages/Espacios";
 import MisReservas from "./dashboard/pages/MisReservas";
 import Horarios from "./dashboard/pages/Horarios";
 import TecIA from "./dashboard/pages/TecIA";
+import Perfil from "./dashboard/pages/Perfil";
+
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
         <Route path="reservas" element={<MisReservas />} />
         <Route path="horarios" element={<Horarios />} />
         <Route path="chat" element={<TecIA />} />
+        <Route path="perfil" element={<Perfil />} />
+
       </Route>
 
       {/* 404 → redirigir a la landing page */}
