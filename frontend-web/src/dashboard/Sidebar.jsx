@@ -75,17 +75,18 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 function SidebarItem({ icon, label, to, collapsed }) {
   return (
     <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `
-        flex items-center gap-3 p-3 rounded-lg transition font-medium
-        ${isActive
-          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-          : "hover:bg-[var(--card-bg-2)] text-[var(--text-main)]"}
-      `
-      }
-      style={{ color: "var(--text-main)" }}
-    >
+  to={to}
+  className={({ isActive }) =>
+    `
+      sidebar-item flex items-center gap-3 p-3 mx-2 font-medium
+      
+      ${isActive
+        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+        : "text-[var(--text-main)]"}
+    `
+  }
+>
+
       <div className={`${collapsed ? "mx-auto" : ""}`}>
         {icon}
       </div>
