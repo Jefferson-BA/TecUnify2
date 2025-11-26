@@ -25,15 +25,21 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       `}
     >
 
-      {/* HEADER */}
+      {/* HEADER con logo alineado y del tamaño correcto */}
       <div
         className="flex items-center justify-between p-4 border-b"
         style={{ borderColor: "var(--border-main)" }}
       >
         {!collapsed && (
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
-            TecUnify
-          </h2>
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo1.png"
+              alt="TecUnify Logo"
+              className="h-12 w-auto object-contain scale-125"
+              style={{ transformOrigin: "left center" }}
+            />
+
+          </div>
         )}
 
         <button
@@ -48,6 +54,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           {collapsed ? <ChevronRight /> : <ChevronLeft />}
         </button>
       </div>
+
+
 
       {/* MENÚ */}
       <nav className="flex-1 mt-6 px-2 space-y-2 overflow-hidden">
@@ -75,17 +83,17 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 function SidebarItem({ icon, label, to, collapsed }) {
   return (
     <NavLink
-  to={to}
-  className={({ isActive }) =>
-    `
+      to={to}
+      className={({ isActive }) =>
+        `
       sidebar-item flex items-center gap-3 p-3 mx-2 font-medium
       
       ${isActive
-        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-        : "text-[var(--text-main)]"}
+          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+          : "text-[var(--text-main)]"}
     `
-  }
->
+      }
+    >
 
       <div className={`${collapsed ? "mx-auto" : ""}`}>
         {icon}

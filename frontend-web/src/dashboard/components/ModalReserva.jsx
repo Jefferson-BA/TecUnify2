@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Calendar, Clock, MessageSquare, X } from "lucide-react";
 
 export default function ModalReserva({ espacio, onClose, onConfirm }) {
   const [fecha, setFecha] = useState("");
@@ -21,71 +22,185 @@ export default function ModalReserva({ espacio, onClose, onConfirm }) {
 
     onConfirm({
       fechaReserva: fecha,
-      horaInicio: horaInicio,
-      horaFin: horaFin,
-      motivo: motivo,
+      horaInicio,
+      horaFin,
+      motivo,
     });
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-xl w-full max-w-md">
+    <div
+      className="
+        fixed inset-0 z-50 flex items-center justify-center
+        bg-black/40 dark:bg-black/70 backdrop-blur-sm
+        animate-fadeIn
+      "
+    >
+      <style>{`
+        @keyframes modalPop {
+          from { opacity: 0; transform: scale(0.95) }
+          to   { opacity: 1; transform: scale(1) }
+        }
 
-        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-          Reservar: {espacio.nombre}
-        </h2>
+        .animate-pop { animation: modalPop 0.25s ease-out }
+        .animate-fadeIn { animation: fadeIn 0.25s ease-out }
+      `}</style>
 
-        <div className="space-y-3">
+      <div
+        className="
+          animate-pop w-full max-w-md p-6 rounded-2xl shadow-xl
+          border transition-all
+        "
+        style={{
+          background: "var(--card-bg)",
+          borderColor: "var(--border-color)",
+          color: "var(--text-color)",
+        }}
+      >
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">
+            Reservar: {espacio.nombre}
+          </h2>
+
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* FORMULARIO */}
+        <div className="space-y-4">
+          {/* Fecha */}
           <div>
-            <label className="block text-sm mb-1">Fecha</label>
-            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)}
-              className="form-control w-full" />
+            <label className="block text-sm mb-1 opacity-70">Fecha</label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-3 w-4 h-4 opacity-60" />
+
+              <input
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                className="
+                  w-full pl-10 pr-3 py-2 rounded-lg
+                  border focus:outline-none focus:ring-2
+                  focus:ring-blue-500/50
+                "
+                style={{
+                  background: "var(--card-bg)",
+                  color: "var(--text-color)",
+                  borderColor: "var(--border-color)",
+                }}
+              />
+            </div>
           </div>
 
+          {/* Horas */}
           <div className="flex gap-3">
+            {/* Inicio */}
             <div className="flex-1">
-              <label className="block text-sm mb-1">Inicio</label>
-              <input 
-                type="time" 
-                step="3600" 
-                min="07:00" 
-                max="22:00"
-                value={horaInicio} 
-                onChange={(e) => setHoraInicio(e.target.value)}
-                className="form-control w-full" 
-              />
+              <label className="block text-sm mb-1 opacity-70">Inicio</label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-3 w-4 h-4 opacity-60" />
+
+                <input
+                  type="time"
+                  step="3600"
+                  min="07:00"
+                  max="22:00"
+                  value={horaInicio}
+                  onChange={(e) => setHoraInicio(e.target.value)}
+                  className="
+                    w-full pl-10 pr-3 py-2 rounded-lg border
+                    focus:outline-none focus:ring-2
+                    focus:ring-blue-500/50
+                  "
+                  style={{
+                    background: "var(--card-bg)",
+                    color: "var(--text-color)",
+                    borderColor: "var(--border-color)",
+                  }}
+                />
+              </div>
             </div>
 
+            {/* Fin */}
             <div className="flex-1">
-              <label className="block text-sm mb-1">Fin</label>
-              <input 
-                type="time" 
-                step="3600" 
-                min="07:00" 
-                max="22:00"
-                value={horaFin} 
-                onChange={(e) => setHoraFin(e.target.value)}
-                className="form-control w-full" 
-              />
+              <label className="block text-sm mb-1 opacity-70">Fin</label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-3 w-4 h-4 opacity-60" />
+
+                <input
+                  type="time"
+                  step="3600"
+                  min="07:00"
+                  max="22:00"
+                  value={horaFin}
+                  onChange={(e) => setHoraFin(e.target.value)}
+                  className="
+                    w-full pl-10 pr-3 py-2 rounded-lg border
+                    focus:outline-none focus:ring-2
+                    focus:ring-blue-500/50
+                  "
+                  style={{
+                    background: "var(--card-bg)",
+                    color: "var(--text-color)",
+                    borderColor: "var(--border-color)",
+                  }}
+                />
+              </div>
             </div>
           </div>
 
+          {/* Motivo */}
           <div>
-            <label className="block text-sm mb-1">Motivo</label>
-            <input type="text" value={motivo} onChange={(e) => setMotivo(e.target.value)}
-              className="form-control w-full" />
+            <label className="block text-sm mb-1 opacity-70">Motivo</label>
+            <div className="relative">
+              <MessageSquare className="absolute left-3 top-3 w-4 h-4 opacity-60" />
+
+              <input
+                type="text"
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+                placeholder="Ej: entrenamiento, reunión..."
+                className="
+                  w-full pl-10 pr-3 py-2 rounded-lg border
+                  focus:outline-none focus:ring-2
+                  focus:ring-blue-500/50
+                "
+                style={{
+                  background: "var(--card-bg)",
+                  color: "var(--text-color)",
+                  borderColor: "var(--border-color)",
+                }}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="mt-5 flex justify-end gap-3">
-          <button className="btn btn-secondary" onClick={onClose}>
+        {/* BOTONES */}
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="
+              px-4 py-2 rounded-lg font-medium
+              bg-gray-200 dark:bg-gray-700
+              hover:bg-gray-300 dark:hover:bg-gray-600
+            "
+          >
             Cancelar
           </button>
 
           <button
-            className="btn text-white"
-            style={{ background: "linear-gradient(to right, #2563eb, #4f46e5)" }}
             onClick={handleConfirm}
+            className="
+              px-5 py-2 rounded-lg font-semibold text-white
+              shadow-md shadow-blue-500/20
+              hover:shadow-blue-500/40 hover:brightness-110
+              bg-gradient-to-r from-blue-600 to-indigo-600
+            "
           >
             Confirmar Reserva
           </button>
