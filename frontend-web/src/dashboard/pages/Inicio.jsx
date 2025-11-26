@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Activity, TrendingUp, Clock, Users, Bell } from "lucide-react";
 
-// ========================================================
-//   Tarjeta de estadísticas (compatible con modo claro)
-// ========================================================
 function StatCard({ title, value, icon: Icon, color, trend }) {
   return (
     <div
@@ -18,7 +15,6 @@ function StatCard({ title, value, icon: Icon, color, trend }) {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm opacity-70">{title}</p>
-
           <h3 className="text-4xl font-bold">{value}</h3>
 
           {trend && (
@@ -29,8 +25,10 @@ function StatCard({ title, value, icon: Icon, color, trend }) {
           )}
         </div>
 
-        <div className="p-3 rounded-xl bg-gradient-to-br text-white shadow-md"
-          style={{ background: `linear-gradient(135deg, ${color[0]}, ${color[1]})` }}>
+        <div
+          className="p-3 rounded-xl bg-gradient-to-br text-white shadow-md"
+          style={{ background: `linear-gradient(135deg, ${color[0]}, ${color[1]})` }}
+        >
           <Icon className="w-6 h-6" />
         </div>
       </div>
@@ -38,9 +36,6 @@ function StatCard({ title, value, icon: Icon, color, trend }) {
   );
 }
 
-// ========================================================
-//     Notificación compatible con modo oscuro/claro
-// ========================================================
 function NotificationItem({ notification, index }) {
   return (
     <div
@@ -53,10 +48,10 @@ function NotificationItem({ notification, index }) {
       }}
     >
       <div className="flex items-start gap-3">
-        <div className="mt-1 w-2 h-2 rounded-full bg-blue-500"></div>
+        <div className="mt-1 w-2 h-2 rounded-full bg-blue-500" />
 
         <div className="flex-1">
-          <p className="font-medium">{notification.message}</p>
+          <p className="font-medium">{notification.accion}</p>
 
           {notification.detalle && (
             <p className="text-xs opacity-60">{notification.detalle}</p>
@@ -64,7 +59,9 @@ function NotificationItem({ notification, index }) {
 
           <div className="text-[11px] opacity-50 mt-1 flex items-center gap-2">
             <Clock className="w-3 h-3" />
-            {new Date(notification.timestamp).toLocaleString()}
+            {notification.timestamp
+              ? new Date(notification.timestamp).toLocaleString()
+              : "Sin fecha"}
           </div>
         </div>
       </div>
@@ -72,9 +69,6 @@ function NotificationItem({ notification, index }) {
   );
 }
 
-// ========================================================
-//                     PANTALLA PRINCIPAL
-// ========================================================
 export default function Inicio() {
   const [stats, setStats] = useState({
     espacios: 0,
@@ -87,14 +81,20 @@ export default function Inicio() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    cargarEstadisticas();
-    cargarNotificaciones();
+    const email = localStorage.getItem("email");
+    const userId = localStorage.getItem("userId");
+
+    cargarEstadisticas(email);
+    cargarNotificaciones(email);
+    const es = suscribirseSSE(userId);
+
+    return () => {
+      if (es) es.close();
+    };
   }, []);
 
-  const cargarEstadisticas = async () => {
+  const cargarEstadisticas = async (email) => {
     try {
-      const email = localStorage.getItem("email");
-
       const resEspacios = await fetch("http://localhost:8081/api/espacios");
       const espacios = await resEspacios.json();
 
@@ -113,7 +113,8 @@ export default function Inicio() {
         reservasPendientes: pendientes,
         usuariosActivos: 1,
       });
-    } catch {
+    } catch (e) {
+      console.error("Error cargando estadísticas", e);
       setStats({
         espacios: 10,
         reservasHoy: 0,
@@ -125,15 +126,49 @@ export default function Inicio() {
     }
   };
 
-  const cargarNotificaciones = () => {
+  const cargarNotificaciones = async (email) => {
     try {
-      const raw = localStorage.getItem("notificaciones");
-      if (!raw) return setNotifications([]);
+      const res = await fetch(
+        `http://localhost:8081/api/actividad?email=${email}`
+      );
+      if (!res.ok) throw new Error("Error al cargar actividad");
 
-      const list = JSON.parse(raw);
-      setNotifications(list.slice().reverse());
-    } catch {
+      const data = await res.json();
+      setNotifications(data);
+    } catch (e) {
+      console.error("Error cargando notificaciones", e);
       setNotifications([]);
+    }
+  };
+
+  const suscribirseSSE = (userId) => {
+    if (!userId) return null;
+
+    try {
+      const es = new EventSource("http://localhost:8081/api/actividad/stream");
+
+      es.addEventListener("actividad", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const myId = Number(localStorage.getItem("userId"));
+
+          if (data.usuarioId === myId) {
+            setNotifications((prev) => [data, ...prev].slice(0, 50));
+          }
+        } catch (err) {
+          console.error("Error parseando evento SSE", err);
+        }
+      });
+
+      es.onerror = (err) => {
+        console.error("Error en SSE de actividad", err);
+        es.close();
+      };
+
+      return es;
+    } catch (err) {
+      console.error("SSE no disponible", err);
+      return null;
     }
   };
 
@@ -170,8 +205,6 @@ export default function Inicio() {
       className="min-h-screen p-6"
       style={{ background: "var(--bg-main)", color: "var(--text-color)" }}
     >
-
-      {/* Animaciones */}
       <style>{`
         @keyframes slideIn {
           from { opacity: 0; transform: translateY(10px); }
@@ -179,13 +212,13 @@ export default function Inicio() {
         }
       `}</style>
 
-      {/* Header */}
-      <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r 
-          from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+      <h1
+        className="text-4xl font-bold mb-6 bg-gradient-to-r 
+          from-blue-500 to-indigo-500 bg-clip-text text-transparent"
+      >
         Dashboard General
       </h1>
 
-      {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {loading
           ? [...Array(4)].map((_, i) => (
@@ -202,7 +235,6 @@ export default function Inicio() {
             ))}
       </div>
 
-      {/* Actividad Reciente */}
       <div
         className="border rounded-2xl p-6"
         style={{
@@ -219,8 +251,8 @@ export default function Inicio() {
           <p className="opacity-70">Aún no hay actividad reciente.</p>
         ) : (
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-            {notifications.slice(0, 10).map((n, idx) => (
-              <NotificationItem key={idx} notification={n} index={idx} />
+            {notifications.map((n, idx) => (
+              <NotificationItem key={n.id ?? idx} notification={n} index={idx} />
             ))}
           </div>
         )}

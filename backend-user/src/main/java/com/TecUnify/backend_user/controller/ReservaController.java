@@ -4,6 +4,7 @@ import com.TecUnify.backend_user.dto.ReservaDTO;
 import com.TecUnify.backend_user.events.ReservaEventEmitter;
 import com.TecUnify.backend_user.model.Reserva;
 import com.TecUnify.backend_user.model.User;
+import com.TecUnify.backend_user.service.ActividadService;
 import com.TecUnify.backend_user.service.ReservaService;
 import com.TecUnify.backend_user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class ReservaController {
     private final ReservaService reservaService;
     private final UserService userService;
     private final ReservaEventEmitter reservaEventEmitter;
+    private final ActividadService actividadService;   // ⬅️ NUEVO
 
     // 🔵 Stream SSE para eventos de reservas (auto cancelación, etc.)
     @GetMapping("/stream")
@@ -50,40 +52,83 @@ public class ReservaController {
     }
 
     // Usuario: crear reserva
+    // Usuario: crear reserva
+    // Usuario: crear reserva
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody ReservaDTO dto, @RequestParam("email") String email) {
+
         User user = userService.findByEmail(email);
         if (user == null) return ResponseEntity.status(404).body("Usuario no encontrado");
 
         dto.setUserId(user.getId());
         Reserva r = reservaService.create(dto);
+
+        if (r == null) {
+            return ResponseEntity.status(400).body("No se pudo crear la reserva (usuario o espacio inválido)");
+        }
+
+        actividadService.registrar(
+                user.getId(),
+                "RESERVA_CREADA",
+                "Creaste una reserva en " + r.getEspacio().getNombre() +
+                        " | Fecha: " + r.getFechaReserva() +
+                        " | " + r.getHoraInicio() + " - " + r.getHoraFin()
+        );
+
         return ResponseEntity.status(201).body(r);
     }
 
-    // Usuario: cancelar propia reserva
+
+    // Usuario: cancelar reserva
     @DeleteMapping("/{id}")
     public ResponseEntity<?> cancelar(@PathVariable Long id, @RequestParam("email") String email) {
+
         User user = userService.findByEmail(email);
         if (user == null) return ResponseEntity.status(404).body("Usuario no encontrado");
 
         Reserva r = reservaService.getById(id);
         if (r == null) return ResponseEntity.status(404).body("Reserva no encontrada");
+
         if (!r.getUsuario().getId().equals(user.getId())) {
             return ResponseEntity.status(403).body("No puedes cancelar esta reserva");
         }
 
         reservaService.delete(id);
+
+        actividadService.registrar(
+                user.getId(),
+                "RESERVA_CANCELADA",
+                "Cancelaste una reserva en " + r.getEspacio().getNombre() +
+                        " | Fecha: " + r.getFechaReserva() +
+                        " | " + r.getHoraInicio() + " - " + r.getHoraFin()
+        );
+
         return ResponseEntity.ok("Cancelada");
     }
 
-    // Admin: cambiar estado de reserva
+    // Admin: cambiar estado
     @PutMapping("/{id}/estado")
-    public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestParam("estado") String estado,
+    public ResponseEntity<?> cambiarEstado(@PathVariable Long id,
+                                           @RequestParam("estado") String estado,
                                            @RequestHeader("X-User-Role") String role) {
+
         if (!"ADMIN".equals(role)) {
             return ResponseEntity.status(403).body("Solo administradores");
         }
+
         Reserva r = reservaService.updateEstado(id, estado);
-        return r != null ? ResponseEntity.ok(r) : ResponseEntity.status(404).body("No encontrada");
-    }
-}
+        if (r == null) return ResponseEntity.status(404).body("No encontrada");
+
+        User destino = r.getUsuario();
+
+        actividadService.registrar(
+                destino.getId(),
+                "RESERVA_ESTADO",
+                "Tu reserva en " + r.getEspacio().getNombre() + " ahora está " + estado +
+                        " | Fecha: " + r.getFechaReserva() +
+                        " | " + r.getHoraInicio() + " - " + r.getHoraFin()
+        );
+
+        return ResponseEntity.ok(r);
+    }}
+

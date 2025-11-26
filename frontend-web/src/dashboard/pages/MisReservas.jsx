@@ -41,18 +41,23 @@ export default function MisReservas() {
   };
 
   const handleCancelar = async (reserva) => {
-    try {
-      const res = await fetch(`${API_BASE}/reservas/${reserva.id}/cancelar`, {
-        method: "PATCH",
-      });
+  try {
+    const email = localStorage.getItem("email");
 
-      if (!res.ok) throw new Error();
-      showToast("Reserva cancelada.", "success");
-      cargarReservas();
-    } catch {
-      showToast("Error al cancelar.", "error");
-    }
-  };
+    const res = await fetch(
+      `${API_BASE}/reservas/${reserva.id}?email=${email}`,
+      { method: "DELETE" }
+    );
+
+    if (!res.ok) throw new Error();
+
+    showToast("Reserva cancelada.", "success");
+    cargarReservas(); // recargar tabla
+  } catch (err) {
+    showToast("Error al cancelar la reserva.", "error");
+  }
+};
+
 
   if (loading)
     return (
