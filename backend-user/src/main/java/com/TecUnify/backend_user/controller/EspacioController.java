@@ -10,7 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import java.io.File;
 
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -20,6 +27,9 @@ import java.util.List;
 public class EspacioController {
 
     private final EspacioService espacioService;
+
+    @Autowired
+    private EspacioEventEmitter eventEmitter;
 
     @GetMapping
     public ResponseEntity<List<EspacioDTO>> listar() {
@@ -39,11 +49,13 @@ public class EspacioController {
         if (!"ADMIN".equals(role))
             return ResponseEntity.status(403).body("Solo administradores");
 
-        return ResponseEntity.status(201).body(espacioService.create(dto));
+        Espacio creado = espacioService.create(dto);
+        return ResponseEntity.status(201).body(creado);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody EspacioDTO dto,
+    public ResponseEntity<?> actualizar(@PathVariable Long id,
+                                        @RequestBody EspacioDTO dto,
                                         @RequestHeader("X-User-Role") String role) {
         if (!"ADMIN".equals(role))
             return ResponseEntity.status(403).body("Solo administradores");
@@ -63,30 +75,48 @@ public class EspacioController {
         return ResponseEntity.ok("Eliminado");
     }
 
-    // Imagen
+    // ===========================
+    //   SUBIR IMAGEN REAL
+    // ===========================
     @PostMapping("/{id}/imagen")
     public ResponseEntity<?> subirImagen(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file,
-            @RequestHeader("X-User-Role") String role) {
+            @RequestHeader("X-User-Role") String role
+    ) {
 
         if (!"ADMIN".equals(role))
             return ResponseEntity.status(403).body("Solo administradores");
 
-        // por ahora solo guardamos un link fake
-        String fakeUrl = "https://fake-storage.com/" + file.getOriginalFilename();
+        try {
+            // 1️⃣ Crear carpeta si no existe
+            File uploadDir = new File("uploads");
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
 
-        Espacio e = espacioService.updateImagen(id, fakeUrl);
+            // 2️⃣ Guardar archivo
+            String nombreArchivo = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            File destino = new File(uploadDir, nombreArchivo);
+            file.transferTo(destino);
 
-        return e != null ? ResponseEntity.ok("Imagen actualizada")
-                : ResponseEntity.status(404).body("Espacio no encontrado");
+            // 3️⃣ Crear URL pública
+            String urlPublica = "http://localhost:8081/uploads/" + nombreArchivo;
+
+            // 4️⃣ Guardar la URL en DB
+            Espacio e = espacioService.updateImagen(id, urlPublica);
+
+            return ResponseEntity.ok(e);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ResponseEntity.status(500).body("Error al subir imagen");
+        }
     }
-    @Autowired
-    private EspacioEventEmitter eventEmitter;
+
 
     @GetMapping("/stream")
     public SseEmitter stream() {
         return eventEmitter.subscribe();
     }
-
 }
