@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,9 +46,10 @@ public class ReservaService {
         Reserva r = new Reserva();
         r.setUsuario(user);
         r.setEspacio(espacio);
-        r.setFechaReserva(dto.getFechaReserva());
-        r.setHoraInicio(dto.getHoraInicio());
-        r.setHoraFin(dto.getHoraFin());
+        r.setFechaReserva(LocalDate.parse(dto.getFechaReserva()));
+        r.setHoraInicio(LocalTime.parse(dto.getHoraInicio()));
+        r.setHoraFin(LocalTime.parse(dto.getHoraFin()));
+
         r.setMotivo(dto.getMotivo());
         r.setObservaciones(dto.getObservaciones());
         r.setEstado(EstadoReserva.PENDIENTE);
@@ -57,10 +60,8 @@ public class ReservaService {
 
         Reserva nueva = reservaRepository.save(r);
 
-        // 🔥 Notificar reserva creada
+        // Eventos SSE
         eventEmitter.broadcast("reserva-creada");
-
-        // 🔥 Notificar espacio reservado
         eventEmitter.broadcast("ESPACIO_RESERVADO_" + espacio.getId());
 
         return nueva;
@@ -74,21 +75,8 @@ public class ReservaService {
         reservaRepository.deleteById(id);
     }
 
-    // ❌ Cancelación por el usuario
-    public void cancelarReserva(Long id) {
-        Reserva r = reservaRepository.findById(id).orElse(null);
-        if (r == null) return;
-
-        r.setEstado(EstadoReserva.CANCELADA);
-        reservaRepository.save(r);
-
-        // 🔥 Notificar cancelación
-        eventEmitter.broadcast("reserva-cancelada-auto");
-        eventEmitter.broadcast("ESPACIO_CANCELADO_" + r.getEspacio().getId());
-    }
-
-    // 🔥 ADMIN CAMBIA ESTADO
-    public Reserva updateEstado(Long id, String estado) {
+    // 🔥 ADMIN cambia estado — devuelve DTO
+    public ReservaDTO updateEstado(Long id, String estado) {
         Reserva r = reservaRepository.findById(id).orElse(null);
         if (r == null) return null;
 
@@ -101,19 +89,15 @@ public class ReservaService {
 
         Reserva actualizado = reservaRepository.save(r);
 
-        // 🔵 Si se completó → liberar espacio
+        // Eventos SSE
         if (estado.equalsIgnoreCase("COMPLETADA")) {
-
             eventEmitter.broadcast("espacio-disponible");
             eventEmitter.broadcast("ESPACIO_DISPONIBLE_" + r.getEspacio().getId());
-
-            // 🔥 Notificar al usuario
             eventEmitter.broadcast("reserva-completada");
         }
 
-        // 🔵 Notificar cualquier otro cambio
         eventEmitter.broadcast("ESPACIO_ESTADO_" + r.getEspacio().getId());
 
-        return actualizado;
+        return ReservaDTO.fromEntity(actualizado);
     }
 }
