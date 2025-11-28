@@ -26,7 +26,7 @@ export default function Espacios() {
   useEffect(() => {
     cargarEspacios();
 
-    const sse = new EventSource(`${API_BASE}/espacios/stream`);
+    const sse = new EventSource(${API_BASE}/espacios/stream);
 
     // Evento general
     sse.addEventListener("espacio-update", (evt) => {
@@ -50,7 +50,7 @@ export default function Espacios() {
       motivo: form.motivo,
     };
 
-    const res = await fetch(`${API_BASE}/reservas?email=${email}`, {
+    const res = await fetch(${API_BASE}/reservas?email=${email}, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -75,7 +75,7 @@ export default function Espacios() {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API_BASE}/espacios`);
+      const res = await fetch(${API_BASE}/espacios);
       if (!res.ok) throw new Error("Error al cargar espacios");
 
       const data = await res.json();
@@ -83,8 +83,10 @@ export default function Espacios() {
       const dataConImagen = data.map((e) => ({
         ...e,
         imagen:
-          e.imagenUrl ||
-          "https://images.unsplash.com/photo-1584270354949-1c72f4fda5f8?q=80",
+  e.imagenUrl
+    ? ${e.imagenUrl.startsWith("/") ? "" : "/"}${e.imagenUrl}
+    : "https://images.unsplash.com/photo-1584270354949-1c72f4fda5f8?q=80",
+
         estado: e.estado || "Disponible",
       }));
 
@@ -153,7 +155,7 @@ export default function Espacios() {
             <div
               key={esp.id}
               style={{
-                animation: `cardSlideIn 0.5s ease-out ${index * 0.1}s both`,
+                animation: cardSlideIn 0.5s ease-out ${index * 0.1}s both,
               }}
             >
               <div
@@ -233,14 +235,14 @@ export default function Espacios() {
                     <Detalle
                       icon={<Users className="w-4 h-4 text-emerald-400" />}
                       label="Capacidad"
-                      value={`${esp.capacidad} personas`}
+                      value={${esp.capacidad} personas}
                     />
 
                     {/* Precio */}
                     <Detalle
                       icon={<DollarSign className="w-4 h-4 text-amber-400" />}
                       label="Precio"
-                      value={`S/. ${esp.precioPorHora}/hora`}
+                      value={S/. ${esp.precioPorHora}/hora}
                     />
                   </div>
 
