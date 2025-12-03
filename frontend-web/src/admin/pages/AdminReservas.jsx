@@ -97,10 +97,7 @@ export default function AdminReservas() {
             </p>
           </div>
 
-          <button className="px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 rounded-xl flex items-center gap-2 font-medium transition-all shadow-lg hover:shadow-xl w-fit">
-            <Download className="w-5 h-5" />
-            Exportar
-          </button>
+          
         </div>
 
         {/* Stats Cards */}

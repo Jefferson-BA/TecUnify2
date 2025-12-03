@@ -193,12 +193,7 @@ export default function Inicio() {
       icon: Clock,
       color: ["#f59e0b", "#d97706"],
     },
-    {
-      title: "Usuarios Activos",
-      value: stats.usuariosActivos,
-      icon: Users,
-      color: ["#a855f7", "#9333ea"],
-    },
+   
   ];
 
   return (
