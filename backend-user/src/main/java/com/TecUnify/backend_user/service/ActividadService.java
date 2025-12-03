@@ -5,6 +5,7 @@ import com.TecUnify.backend_user.events.ActividadEventEmitter;
 import com.TecUnify.backend_user.model.Actividad;
 import com.TecUnify.backend_user.repository.ActividadRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ActividadService {
 
     private final ActividadRepository repo;
@@ -27,10 +29,17 @@ public class ActividadService {
         a.setDetalle(detalle);
         a.setFecha(LocalDateTime.now());
 
-        a = repo.save(a); // IMPORTANTE: usar el que vuelve con ID
+        a = repo.save(a); // usar el que vuelve con ID
 
         ActividadDTO dto = ActividadDTO.fromEntity(a);
-        emitter.sendActividad(dto);
+
+        // 🔒 NUNCA permitimos que errores de SSE rompan la petición HTTP
+        try {
+            emitter.sendActividad(dto);
+        } catch (Exception e) {
+            log.warn("No se pudo enviar actividad SSE para usuario {}: {}", userId, e.getMessage());
+            // NO lanzamos la excepción, solo lo registramos
+        }
     }
 
     // Listar actividades del usuario como DTO

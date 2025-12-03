@@ -142,35 +142,36 @@ export default function Inicio() {
   };
 
   const suscribirseSSE = (userId) => {
-    if (!userId) return null;
+  if (!userId) return null;
 
+  let es = new EventSource("http://localhost:8081/api/actividad/stream");
+
+  es.onmessage = () => {};  
+
+  es.addEventListener("actividad", (event) => {
     try {
-      const es = new EventSource("http://localhost:8081/api/actividad/stream");
+      const data = JSON.parse(event.data);
+      const myId = Number(localStorage.getItem("userId"));
 
-      es.addEventListener("actividad", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          const myId = Number(localStorage.getItem("userId"));
-
-          if (data.usuarioId === myId) {
-            setNotifications((prev) => [data, ...prev].slice(0, 50));
-          }
-        } catch (err) {
-          console.error("Error parseando evento SSE", err);
-        }
-      });
-
-      es.onerror = (err) => {
-        console.error("Error en SSE de actividad", err);
-        es.close();
-      };
-
-      return es;
+      if (data.usuarioId === myId) {
+        setNotifications((prev) => [data, ...prev].slice(0, 50));
+      }
     } catch (err) {
-      console.error("SSE no disponible", err);
-      return null;
+      console.error("Error parsing SSE data:", err);
     }
+  });
+
+  es.onerror = () => {
+    console.warn("⚠ SSE desconectado. Reintentando...");
+    es.close();
+
+    // Reintenta en 3 segundos
+    setTimeout(() => suscribirseSSE(userId), 3000);
   };
+
+  return es;
+};
+
 
   const statsConfig = [
     {

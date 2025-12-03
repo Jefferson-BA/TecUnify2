@@ -13,19 +13,32 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class ReservaEventEmitter {
 
+    // Lista de todos los clientes suscritos
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     public SseEmitter subscribe() {
-        SseEmitter emitter = new SseEmitter(0L); // sin timeout
+        // Timeout "largo", opcionalmente puedes usar 0L (infinito)
+        SseEmitter emitter = new SseEmitter(0L);
         emitters.add(emitter);
 
         emitter.onCompletion(() -> emitters.remove(emitter));
         emitter.onTimeout(() -> emitters.remove(emitter));
         emitter.onError(e -> emitters.remove(emitter));
 
+        // Pequeño ping inicial (no obligatorio)
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("init")
+                    .data("connected"));
+        } catch (IOException e) {
+            emitter.complete();
+            emitters.remove(emitter);
+        }
+
         return emitter;
     }
 
+    // Notificación específica para auto-cancelación
     public void notifyAutoCancel(Reserva reserva) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("id", reserva.getId());
@@ -41,25 +54,20 @@ public class ReservaEventEmitter {
         emit("reserva-cancelada-auto", payload);
     }
 
-    private void emit(String eventName, Object data) {
+    // Método genérico para emitir eventos
+    public void emit(String eventName, Object data) {
         for (SseEmitter emitter : emitters) {
             try {
-                emitter.send(SseEmitter.event()
-                        .name(eventName)
-                        .data(data));
+                emitter.send(
+                        SseEmitter.event()
+                                .name(eventName)
+                                .data(data)
+                );
             } catch (IOException e) {
+                // Si falla, cerramos y eliminamos este emitter
                 emitter.complete();
+                emitters.remove(emitter);
             }
         }
-        emitters.removeIf(em -> {
-            try {
-                em.send(SseEmitter.event().comment("ping"));
-                return false; // Sigue vivo
-            } catch (Exception e) {
-                em.complete();
-                return true; // Se elimina
-            }
-        });
-
     }
 }

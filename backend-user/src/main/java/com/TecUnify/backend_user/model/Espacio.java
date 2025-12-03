@@ -1,5 +1,6 @@
 package com.TecUnify.backend_user.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Espacio {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,8 +31,10 @@ public class Espacio {
     @Column(nullable = false)
     private Integer capacidad;
 
+    // 👇 Evita que vuelva a serializar espacios dentro del tipo
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_espacio_id")
+    @JsonIgnoreProperties("espacios")
     private TipoEspacio tipoEspacio;
 
     @Column(name = "precio_por_hora", precision = 10, scale = 2)
@@ -50,9 +54,11 @@ public class Espacio {
     private LocalDateTime fechaCreacion;
 
     @OneToMany(mappedBy = "espacio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("espacio")
     private List<Reserva> reservas;
 
     @OneToMany(mappedBy = "espacio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("espacio")
     private List<HorarioDisponibilidad> horariosDisponibilidad;
 
     @PrePersist

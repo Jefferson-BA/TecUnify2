@@ -1,13 +1,17 @@
 package com.TecUnify.backend_user.service;
 
+import com.TecUnify.backend_user.dto.ReservaAdminDTO;
 import com.TecUnify.backend_user.dto.ReservaDTO;
 import com.TecUnify.backend_user.events.EspacioEventEmitter;
 import com.TecUnify.backend_user.model.*;
 import com.TecUnify.backend_user.repository.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +25,9 @@ public class ReservaService {
 
     private final EspacioEventEmitter eventEmitter;
 
+    // -------------------------
+    // RESERVAS DEL USUARIO
+    // -------------------------
     public List<ReservaDTO> getByUserId(Long userId) {
         return reservaRepository.findByUsuarioId(userId)
                 .stream()
@@ -28,6 +35,9 @@ public class ReservaService {
                 .collect(Collectors.toList());
     }
 
+    // -------------------------
+    // TODAS LAS RESERVAS
+    // -------------------------
     public List<ReservaDTO> getAll() {
         return reservaRepository.findAll()
                 .stream()
@@ -35,6 +45,9 @@ public class ReservaService {
                 .collect(Collectors.toList());
     }
 
+    // -------------------------
+    // CREAR RESERVA
+    // -------------------------
     public Reserva create(ReservaDTO dto) {
 
         User user = userRepository.findById(dto.getUserId()).orElse(null);
@@ -44,23 +57,22 @@ public class ReservaService {
         Reserva r = new Reserva();
         r.setUsuario(user);
         r.setEspacio(espacio);
-        r.setFechaReserva(dto.getFechaReserva());
-        r.setHoraInicio(dto.getHoraInicio());
-        r.setHoraFin(dto.getHoraFin());
+
+        r.setFechaReserva(LocalDate.parse(dto.getFechaReserva()));
+        r.setHoraInicio(LocalTime.parse(dto.getHoraInicio()));
+        r.setHoraFin(LocalTime.parse(dto.getHoraFin()));
+
         r.setMotivo(dto.getMotivo());
         r.setObservaciones(dto.getObservaciones());
         r.setEstado(EstadoReserva.PENDIENTE);
 
-        if (dto.getPrecioTotal() != null) {
+        if (dto.getPrecioTotal() != null)
             r.setPrecioTotal(BigDecimal.valueOf(dto.getPrecioTotal()));
-        }
 
         Reserva nueva = reservaRepository.save(r);
 
-        // 🔥 Notificar reserva creada
+        // SSE EVENTOS
         eventEmitter.broadcast("reserva-creada");
-
-        // 🔥 Notificar espacio reservado
         eventEmitter.broadcast("ESPACIO_RESERVADO_" + espacio.getId());
 
         return nueva;
@@ -74,46 +86,57 @@ public class ReservaService {
         reservaRepository.deleteById(id);
     }
 
-    // ❌ Cancelación por el usuario
-    public void cancelarReserva(Long id) {
-        Reserva r = reservaRepository.findById(id).orElse(null);
-        if (r == null) return;
+    // --------------------------------------------------------
+    // 🔥 FIX TOTAL — ADMIN cambia estado sin violar CHECK
+    // --------------------------------------------------------
+    public ReservaDTO updateEstado(Long id, String estado) {
 
-        r.setEstado(EstadoReserva.CANCELADA);
-        reservaRepository.save(r);
-
-        // 🔥 Notificar cancelación
-        eventEmitter.broadcast("reserva-cancelada-auto");
-        eventEmitter.broadcast("ESPACIO_CANCELADO_" + r.getEspacio().getId());
-    }
-
-    // 🔥 ADMIN CAMBIA ESTADO
-    public Reserva updateEstado(Long id, String estado) {
         Reserva r = reservaRepository.findById(id).orElse(null);
         if (r == null) return null;
 
+        EstadoReserva nuevoEstado;
         try {
-            EstadoReserva nuevo = EstadoReserva.valueOf(estado.toUpperCase());
-            r.setEstado(nuevo);
+            nuevoEstado = EstadoReserva.valueOf(estado.toUpperCase());
         } catch (IllegalArgumentException e) {
             return null;
         }
 
-        Reserva actualizado = reservaRepository.save(r);
+        // 🔥 UPDATE parcial, NO toca fecha_reserva ni hora_inicio/fin
+        reservaRepository.actualizarSoloEstado(id, nuevoEstado);
 
-        // 🔵 Si se completó → liberar espacio
+        // Recargar desde BD para devolver DTO correcto
+        Reserva actualizado = reservaRepository.findById(id).orElse(null);
+
+        // SSE
         if (estado.equalsIgnoreCase("COMPLETADA")) {
-
             eventEmitter.broadcast("espacio-disponible");
             eventEmitter.broadcast("ESPACIO_DISPONIBLE_" + r.getEspacio().getId());
-
-            // 🔥 Notificar al usuario
             eventEmitter.broadcast("reserva-completada");
         }
 
-        // 🔵 Notificar cualquier otro cambio
         eventEmitter.broadcast("ESPACIO_ESTADO_" + r.getEspacio().getId());
 
-        return actualizado;
+        return ReservaDTO.fromEntity(actualizado);
     }
+    public List<ReservaAdminDTO> getAllAdmin() {
+        return reservaRepository.findAll().stream().map(r ->
+                new ReservaAdminDTO(
+                        r.getId(),
+
+                        r.getUsuario().getId(),
+                        r.getUsuario().getFirstName() + " " + r.getUsuario().getLastName(),
+
+                        r.getEspacio().getId(),
+                        r.getEspacio().getNombre(),
+
+                        r.getFechaReserva().toString(),
+                        r.getHoraInicio().toString(),
+                        r.getHoraFin().toString(),
+
+                        r.getMotivo(),
+                        r.getEstado().name()
+                )
+        ).collect(Collectors.toList());
+    }
+
 }

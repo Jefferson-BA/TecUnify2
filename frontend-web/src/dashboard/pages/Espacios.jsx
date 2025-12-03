@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 const API_BASE = "http://localhost:8081/api";
+const IMG_BASE = "http://localhost:8081"; // base del backend
 
 export default function Espacios() {
   const [espacios, setEspacios] = useState([]);
@@ -29,7 +30,7 @@ export default function Espacios() {
     const sse = new EventSource(`${API_BASE}/espacios/stream`);
 
     // Evento general
-    sse.addEventListener("espacio-update", (evt) => {
+    sse.addEventListener("espacio-update", () => {
       cargarEspacios();
     });
 
@@ -58,7 +59,6 @@ export default function Espacios() {
 
     if (res.ok) {
       showToast("Reserva creada con éxito", "success");
-
       // Notificación global
       window.dispatchEvent(new Event("reserva-creada"));
     } else {
@@ -80,13 +80,31 @@ export default function Espacios() {
 
       const data = await res.json();
 
-      const dataConImagen = data.map((e) => ({
-        ...e,
-        imagen:
-          e.imagenUrl ||
-          "https://images.unsplash.com/photo-1584270354949-1c72f4fda5f8?q=80",
-        estado: e.estado || "Disponible",
-      }));
+      const dataConImagen = data.map((e) => {
+        let imagenFinal =
+          "https://images.unsplash.com/photo-1584270354949-1c72f4fda5f8?q=80";
+
+        if (e.imagenUrl) {
+          const url = e.imagenUrl.trim();
+
+          if (url.startsWith("http://") || url.startsWith("https://")) {
+            // caso: URL completa guardada en BD
+            imagenFinal = url;
+          } else if (url.startsWith("/")) {
+            // caso: /uploads/archivo.jpg
+            imagenFinal = `${IMG_BASE}${url}`;
+          } else {
+            // caso: solo nombre de archivo -> asumimos carpeta uploads
+            imagenFinal = `${IMG_BASE}/uploads/${url}`;
+          }
+        }
+
+        return {
+          ...e,
+          imagen: imagenFinal,
+          estado: e.estado || "Disponible",
+        };
+      });
 
       setEspacios(dataConImagen);
     } catch (err) {
@@ -171,6 +189,7 @@ export default function Espacios() {
                 <div className="relative h-48">
                   <img
                     src={esp.imagen}
+                    alt={esp.nombre}
                     className={`w-full h-full object-cover transition-transform duration-500 ${
                       ocupado ? "" : "hover:scale-110"
                     }`}
@@ -287,7 +306,7 @@ export default function Espacios() {
 }
 
 // =====================================================
-// COMPONENTE PARA DETALLES (Mantiene claridad del JSX)
+// COMPONENTE PARA DETALLES
 // =====================================================
 function Detalle({ icon, label, value }) {
   return (

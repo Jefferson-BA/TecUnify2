@@ -6,11 +6,13 @@ import com.TecUnify.backend_user.model.Espacio;
 import com.TecUnify.backend_user.service.EspacioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.File;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -21,6 +23,12 @@ public class EspacioController {
 
     private final EspacioService espacioService;
 
+    @Autowired
+    private EspacioEventEmitter eventEmitter;
+
+    // =========================
+    //   LISTAR (SOLO DTOs)
+    // =========================
     @GetMapping
     public ResponseEntity<List<EspacioDTO>> listar() {
         return ResponseEntity.ok(espacioService.getAllActivos());
@@ -29,64 +37,107 @@ public class EspacioController {
     @GetMapping("/{id}")
     public ResponseEntity<?> obtener(@PathVariable Long id) {
         EspacioDTO dto = espacioService.getById(id);
-        return dto != null ? ResponseEntity.ok(dto)
-                : ResponseEntity.status(404).body("Espacio no encontrado");
+        return dto != null
+                ? ResponseEntity.ok(dto)
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Espacio no encontrado");
     }
 
+    // =========================
+    //   CREAR (DEVUELVE DTO)
+    // =========================
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody EspacioDTO dto,
                                    @RequestHeader("X-User-Role") String role) {
-        if (!"ADMIN".equals(role))
-            return ResponseEntity.status(403).body("Solo administradores");
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Solo administradores");
+        }
 
-        return ResponseEntity.status(201).body(espacioService.create(dto));
+        Espacio creado = espacioService.create(dto);
+        EspacioDTO salida = EspacioDTO.fromEntity(creado);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(salida);
     }
 
+    // =========================
+    //   ACTUALIZAR (DTO)
+    // =========================
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody EspacioDTO dto,
+    public ResponseEntity<?> actualizar(@PathVariable Long id,
+                                        @RequestBody EspacioDTO dto,
                                         @RequestHeader("X-User-Role") String role) {
-        if (!"ADMIN".equals(role))
-            return ResponseEntity.status(403).body("Solo administradores");
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Solo administradores");
+        }
 
-        Espacio espacio = espacioService.update(id, dto);
-        return espacio != null ? ResponseEntity.ok(espacio)
-                : ResponseEntity.status(404).body("Espacio no encontrado");
+        Espacio actualizado = espacioService.update(id, dto);
+        if (actualizado == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Espacio no encontrado");
+        }
+
+        EspacioDTO salida = EspacioDTO.fromEntity(actualizado);
+        return ResponseEntity.ok(salida);
     }
 
+    // =========================
+    //   ELIMINAR (SOFT DELETE)
+    // =========================
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable Long id,
                                       @RequestHeader("X-User-Role") String role) {
-        if (!"ADMIN".equals(role))
-            return ResponseEntity.status(403).body("Solo administradores");
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Solo administradores");
+        }
 
         espacioService.delete(id);
         return ResponseEntity.ok("Eliminado");
     }
 
-    // Imagen
+    // =========================
+    //   SUBIR IMAGEN REAL
+    //   → GUARDA ARCHIVO
+    //   → ACTUALIZA imagenUrl
+    //   → DEVUELVE DTO
+    // =========================
     @PostMapping("/{id}/imagen")
     public ResponseEntity<?> subirImagen(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file,
-            @RequestHeader("X-User-Role") String role) {
+            @RequestHeader("X-User-Role") String role
+    ) {
 
         if (!"ADMIN".equals(role))
             return ResponseEntity.status(403).body("Solo administradores");
 
-        // por ahora solo guardamos un link fake
-        String fakeUrl = "https://fake-storage.com/" + file.getOriginalFilename();
+        try {
+            // 📌 Ruta ABSOLUTA real en tu PC
+            String UPLOAD_DIR = "C:/TecUnify1.2/uploads/";
 
-        Espacio e = espacioService.updateImagen(id, fakeUrl);
+            File uploadDir = new File(UPLOAD_DIR);
+            if (!uploadDir.exists()) uploadDir.mkdirs();
 
-        return e != null ? ResponseEntity.ok("Imagen actualizada")
-                : ResponseEntity.status(404).body("Espacio no encontrado");
+            // Guardar archivo
+            String nombreArchivo = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            File destino = new File(UPLOAD_DIR + nombreArchivo);
+            file.transferTo(destino);
+
+            // URL pública
+            String urlPublica = "http://localhost:8081/uploads/" + nombreArchivo;
+
+            Espacio e = espacioService.updateImagen(id, urlPublica);
+            return ResponseEntity.ok(EspacioDTO.fromEntity(e));
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ResponseEntity.status(500).body("Error al subir imagen");
+        }
     }
-    @Autowired
-    private EspacioEventEmitter eventEmitter;
 
+
+    // =========================
+    //   STREAM SSE
+    // =========================
     @GetMapping("/stream")
     public SseEmitter stream() {
         return eventEmitter.subscribe();
     }
-
 }
