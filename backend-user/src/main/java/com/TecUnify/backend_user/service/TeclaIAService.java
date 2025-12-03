@@ -14,7 +14,6 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Service
 @RequiredArgsConstructor
 public class TeclaIAService {
@@ -22,51 +21,208 @@ public class TeclaIAService {
     private final EspacioRepository espacioRepo;
     private final ReservaRepository reservaRepo;
 
-    // ===============================
-    // 🧠 PROCESADOR PRINCIPAL
-    // ===============================
+    // ===========================
+    // 🧠 PROCESADOR CENTRAL (NLP)
+    // ===========================
     public String processMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return "🤖 No recibí ningún mensaje. Intenta escribir algo.";
+        }
 
         String msg = message.toLowerCase();
 
-        // 1) Buscar disponibilidad
-        if (msg.contains("disponible") || msg.contains("horario") || msg.contains("hora") || msg.contains("reservado")) {
+        // ======================
+        // ▪ Entrenamiento semántico
+        // ======================
+        if (msg.contains("tecunify") || msg.contains("que es tecunify") || msg.contains("sobre la app")) {
+            return infoTecUnify();
+        }
+
+        if (msg.contains("reserva") && msg.contains("informacion")) {
+            return infoReservasGenerales();
+        }
+
+        // ======================
+        // ▪ Dominio principal
+        // ======================
+        if (msg.contains("espacios") || msg.contains("qué espacios") || msg.contains("salas") || msg.contains("ambientes")) {
+            return listarEspacios();
+        }
+
+        if (msg.contains("mis reservas") || msg.contains("reservas hoy") || msg.contains("qué reservé")) {
+            return listarReservasHoy();
+        }
+
+        if (msg.contains("disponible") || msg.contains("libre") || msg.contains("horario") || msg.contains("ocupado")) {
             return handleAvailability(msg);
         }
 
-        // 2) Reglas del espacio
-        if (msg.contains("regla") || msg.contains("norma") || msg.contains("tiempo") || msg.contains("puedo usar")) {
-            return """
-                    📌 **Reglas de uso:**
-                    • Máximo 2 horas por reserva  
-                    • Llegar en los primeros 15 minutos  
-                    • No consumir alimentos  
-                    • Mantener silencio  
-                    • Cancelar con 30 min de anticipación
-                    """;
+        if (msg.contains("reservar")) {
+            return crearReservaSimple(msg);
         }
 
-        // 3) Responder básico
+        if (msg.contains("regla") || msg.contains("norma") || msg.contains("política") || msg.contains("tiempo máximo")) {
+            return reglas();
+        }
+
+        // ======================
+        // ▪ Saludo/ayuda por defecto
+        // ======================
+        return saludoGeneral();
+    }
+
+
+    // ======================================
+    // 🧩 INFORMACIÓN SOBRE TECUNIFY
+    // ======================================
+    private String infoTecUnify() {
         return """
-                Hola 👋, soy TecIA.
-                Puedo ayudarte con:
-                • Horarios disponibles  
-                • Consultar si un espacio está ocupado  
-                • Explicar reglas de uso  
-                • Sugerirte la mejor hora para reservar
-                
-                Por ejemplo:  
-                👉 "¿Qué horas está libre la Sala de Reuniones mañana?"
+                👋 **TecUnify – Sistema Inteligente de Reservas**
+
+                TecUnify permite:
+                • Reservar salas, laboratorios, canchas y ambientes
+                • Consultar disponibilidad en tiempo real
+                • Ver tus reservas activas y pasadas
+                • Recibir confirmaciones y notificaciones
+                • Gestionar reglas y políticas de uso
+
+                Pregúntame:
+                👉 “¿Qué espacios existen?”
+                👉 “¿Qué reservas tengo hoy?”
+                👉 “¿Está libre el laboratorio mañana?”
+                👉 “Reservar sala de reuniones mañana a las 5”
                 """;
     }
 
 
-    // ===============================================================
-    // 🧠 RESPUESTAS INTELIGENTES: DISPONIBILIDAD Y SUGERENCIAS REALES
-    // ===============================================================
+    // ======================================
+    // 🧩 INFORMACIÓN GENERAL SOBRE RESERVAS
+    // ======================================
+    private String infoReservasGenerales() {
+        return """
+                📌 **¿Qué puedo hacer sobre reservas?**
+
+                Con TecIA puedes:
+                • Ver disponibilidad de un espacio  
+                • Crear reservas simples  
+                • Listar todas las reservas del día  
+                • Revisar horarios ocupados  
+                • Conocer reglas y tiempos máximos  
+
+                Ejemplos:
+                👉 “¿Qué reservas hay hoy?”
+                👉 “¿A qué hora está libre el laboratorio?”
+                👉 “Reservar sala de reuniones mañana a las 3”
+                """;
+    }
+
+
+    // ======================================
+    // 🧩 LISTAR ESPACIOS
+    // ======================================
+    private String listarEspacios() {
+
+        List<Espacio> espacios = espacioRepo.findAll();
+
+        if (espacios.isEmpty())
+            return "❌ No hay espacios registrados en TecUnify.";
+
+        StringBuilder sb = new StringBuilder("📍 **Espacios disponibles en TecUnify:**\n\n");
+
+        for (Espacio e : espacios) {
+            sb.append("• ")
+                    .append(e.getNombre());
+
+            if (e.getTipoEspacio() != null) {
+                sb.append(" — ").append(e.getTipoEspacio().getNombre());
+            }
+
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
+
+
+    // ======================================
+    // 🧩 LISTAR RESERVAS DEL DÍA
+    // ======================================
+    private String listarReservasHoy() {
+
+        LocalDate hoy = LocalDate.now();
+
+        List<Reserva> reservas = reservaRepo.findAll()
+                .stream()
+                .filter(r -> r.getFechaReserva().equals(hoy))
+                .collect(Collectors.toList());
+
+        if (reservas.isEmpty()) {
+            return "📅 No hay reservas registradas para hoy.";
+        }
+
+        StringBuilder sb = new StringBuilder("📅 **Reservas de hoy:**\n\n");
+
+        for (Reserva r : reservas) {
+            sb.append("• ").append(r.getEspacio().getNombre())
+                    .append(" — ").append(r.getHoraInicio())
+                    .append(" a ").append(r.getHoraFin())
+                    .append(" (Estado: ").append(r.getEstado()).append(")")
+                    .append("\n");
+        }
+
+        return sb.toString();
+    }
+
+
+    // ======================================
+    // 🧩 CREAR RESERVA SIMPLE
+    // ======================================
+    private String crearReservaSimple(String msg) {
+
+        List<Espacio> espacios = espacioRepo.findAll();
+
+        Espacio espacio = espacios.stream()
+                .filter(e -> msg.contains(e.getNombre().toLowerCase()))
+                .findFirst()
+                .orElse(null);
+
+        if (espacio == null)
+            return "❓ No entendí qué espacio quieres reservar. Intenta especificar el nombre exacto.";
+
+        LocalDate fecha = detectarFecha(msg);
+        LocalTime horaInicio = LocalTime.of(17, 0);
+        LocalTime horaFin = horaInicio.plusHours(1);
+
+        boolean ocupado = reservaRepo.findAll()
+                .stream()
+                .anyMatch(r ->
+                        r.getFechaReserva().equals(fecha) &&
+                                r.getEspacio().getId().equals(espacio.getId()) &&
+                                r.getHoraInicio().equals(horaInicio)
+                );
+
+        if (ocupado)
+            return "❌ Ese horario ya está reservado.";
+
+        Reserva r = new Reserva();
+        r.setEspacio(espacio);
+        r.setFechaReserva(fecha);
+        r.setHoraInicio(horaInicio);
+        r.setHoraFin(horaFin);
+        r.setEstado(EstadoReserva.PENDIENTE);
+
+        reservaRepo.save(r);
+
+        return "✅ Reserva creada exitosamente para **" + espacio.getNombre() +
+                "** el " + fecha + " a las " + horaInicio + ".";
+    }
+
+
+    // ======================================
+    // 🧩 DISPONIBILIDAD REAL DEL ESPACIO
+    // ======================================
     private String handleAvailability(String msg) {
 
-        // 1) Detectar espacio por nombre
         List<Espacio> espacios = espacioRepo.findAll();
 
         Espacio espacioEncontrado = espacios.stream()
@@ -74,85 +230,112 @@ public class TeclaIAService {
                 .findFirst()
                 .orElse(null);
 
-        if (espacioEncontrado == null) {
-            return "❓ No entendí qué espacio quieres consultar. Intenta: Sala, Laboratorio, Cancha…";
-        }
+        if (espacioEncontrado == null)
+            return "❓ No encontré ese espacio. Asegúrate de escribir su nombre.";
 
-        // 2) Detectar fecha (si dice "hoy", "mañana")
         LocalDate fecha = detectarFecha(msg);
 
-        // 3) Sacar reservas activas del espacio
-        List<Reserva> activas = reservaRepo.findByEspacioIdAndEstadoIn(
-                espacioEncontrado.getId(),
-                List.of(EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA)
-        );
-
-        activas = activas.stream()
+        List<Reserva> activas = reservaRepo.findAll()
+                .stream()
+                .filter(r -> r.getEspacio().getId().equals(espacioEncontrado.getId()))
                 .filter(r -> r.getFechaReserva().equals(fecha))
+                .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA ||
+                        r.getEstado() == EstadoReserva.PENDIENTE)
                 .sorted(Comparator.comparing(Reserva::getHoraInicio))
                 .collect(Collectors.toList());
 
         if (activas.isEmpty()) {
-            return "✅ *" + espacioEncontrado.getNombre() + "* está totalmente libre el " + fecha + ".";
+            return "✅ *" + espacioEncontrado.getNombre() +
+                    "* está libre todo el día **" + fecha + "**.";
         }
 
-        // 4) Sugerencias automáticas de horario
-        StringBuilder respuesta = new StringBuilder();
-        respuesta.append("📅 Disponibilidad de **").append(espacioEncontrado.getNombre())
-                .append("** el ").append(fecha).append(":\n\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append("📅 **Disponibilidad de ").append(espacioEncontrado.getNombre())
+                .append(" el ").append(fecha).append(":**\n\n");
 
-        respuesta.append("Horarios ocupados:\n");
+        sb.append("Horarios ocupados:\n");
         for (Reserva r : activas) {
-            respuesta.append("• ").append(r.getHoraInicio()).append(" - ").append(r.getHoraFin()).append("\n");
+            sb.append("• ").append(r.getHoraInicio())
+                    .append(" - ").append(r.getHoraFin()).append("\n");
         }
 
-        respuesta.append("\n🔍 Sugerencias:\n");
-        String sugerencia = sugerirHorarioLibre(activas);
-        respuesta.append(sugerencia);
+        sb.append("\n🔍 Sugerencia:\n");
+        sb.append(sugerirHorarioLibre(activas));
 
-        return respuesta.toString();
+        return sb.toString();
     }
 
 
-    // ======================
-    // CALCULAR HORAS LIBRES
-    // ======================
+    // ======================================
+    // 🧩 SUGERIR HORARIO LIBRE
+    // ======================================
     private String sugerirHorarioLibre(List<Reserva> reservas) {
 
         LocalTime inicioDia = LocalTime.of(8, 0);
         LocalTime finDia = LocalTime.of(22, 0);
 
-        List<LocalTime[]> ocupados = reservas.stream()
-                .map(r -> new LocalTime[] { r.getHoraInicio(), r.getHoraFin() })
-                .collect(Collectors.toList());
-
-        // Buscar huecos
         LocalTime cursor = inicioDia;
 
-        for (LocalTime[] bloque : ocupados) {
-
-            if (cursor.isBefore(bloque[0])) {
-                return "🟢 Libre de **" + cursor + " a " + bloque[0] + "**";
+        for (Reserva r : reservas) {
+            if (cursor.isBefore(r.getHoraInicio())) {
+                return "🟢 Está libre de **" + cursor + " a " + r.getHoraInicio() + "**.";
             }
-
-            cursor = bloque[1];
+            cursor = r.getHoraFin();
         }
 
         if (cursor.isBefore(finDia)) {
-            return "🟢 Libre desde **" + cursor + " en adelante**";
+            return "🟢 Libre desde **" + cursor + " en adelante**.";
         }
 
-        return "❌ No hay horarios libres este día.";
+        return "❌ No hay horarios libres ese día.";
     }
 
 
-    // ======================
-    // DETECTAR FECHA
-    // ======================
+    // ======================================
+    // 🧩 DETECTAR FECHA POR NLP
+    // ======================================
     private LocalDate detectarFecha(String msg) {
         if (msg.contains("mañana")) return LocalDate.now().plusDays(1);
         if (msg.contains("hoy")) return LocalDate.now();
-        return LocalDate.now(); // por defecto hoy
+        return LocalDate.now();
+    }
+
+
+    // ======================================
+    // 🧩 REGLAS GENERALES
+    // ======================================
+    private String reglas() {
+        return """
+                📌 **Reglas de uso de los espacios:**
+                • Máximo 2 horas por reserva  
+                • Llegar dentro de los primeros 15 minutos  
+                • No consumir alimentos  
+                • Mantener silencio  
+                • Cancelar con 30 minutos de anticipación  
+                • Respetar el mobiliario y equipamiento  
+                """;
+    }
+
+
+    // ======================================
+    // 🧩 SALUDO GENERAL
+    // ======================================
+    private String saludoGeneral() {
+        return """
+                👋 Hola, soy **TecIA**, tu asistente inteligente de TecUnify.
+
+                Puedo ayudarte con:
+                • Consultar disponibilidad  
+                • Ver tus reservas  
+                • Crear reservas  
+                • Listar espacios  
+                • Explicar reglas de uso  
+
+                Ejemplos:
+                👉 “¿Qué espacios existen?”  
+                👉 “¿Está libre la sala de reuniones mañana?”  
+                👉 “Quiero reservar el laboratorio mañana a las 5”  
+                """;
     }
 
 }

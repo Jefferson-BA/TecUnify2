@@ -36,15 +36,18 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
-# Configuración de CORS
 cors:
   allowed-origins: "http://localhost:5173,http://localhost:3000"
   allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
   allowed-headers: "*"
   allow-credentials: true
 
-# Configuración de la aplicación
 app:
   name: TecUnify
   version: 1.2.0
   description: Sistema de reservas de espacios tecnológicos
+
+# ✅ Configuración CORRECTA para GEMINI
+gemini:
+  api:
+    key: "AIzaSyC1wULhjYOJRq1kmMqtQID1WOSgmaMbpW8"
