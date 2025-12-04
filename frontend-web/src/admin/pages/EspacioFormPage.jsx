@@ -240,7 +240,7 @@ export default function EspacioFormPage() {
                     value={form.nombre ?? ""}
                     onChange={handleChange}
                     placeholder="Ej: Sala de Conferencias A"
-                    className="w-full bg-gray-900 text-white px-4 py-3 rounded-xl border border-gray-700"
+className="w-full bg-[var(--card-bg)] text-[var(--text-color)] px-4 py-3 rounded-xl border border-[var(--border-color)]"
                   />
                 </div>
 
@@ -255,7 +255,7 @@ export default function EspacioFormPage() {
                     onChange={handleChange}
                     rows={3}
                     placeholder="Describe el espacio..."
-                    className="w-full bg-gray-900 text-white px-4 py-3 rounded-xl border border-gray-700 resize-none"
+className="w-full bg-[var(--card-bg)] text-[var(--text-color)] px-4 py-3 rounded-xl border border-[var(--border-color)]"
                   />
                 </div>
 
@@ -271,7 +271,7 @@ export default function EspacioFormPage() {
                       value={form.ubicacion ?? ""}
                       onChange={handleChange}
                       placeholder="Piso 2, Ala Norte"
-                      className="w-full bg-gray-900 text-white px-4 py-3 rounded-xl border border-gray-700"
+className="w-full bg-[var(--card-bg)] text-[var(--text-color)] px-4 py-3 rounded-xl border border-[var(--border-color)]"
                     />
                   </div>
 
@@ -287,7 +287,7 @@ export default function EspacioFormPage() {
                       value={form.capacidad ?? ""}
                       onChange={handleChange}
                       placeholder="20"
-                      className="w-full bg-gray-900 text-white px-4 py-3 rounded-xl border border-gray-700"
+className="w-full bg-[var(--card-bg)] text-[var(--text-color)] px-4 py-3 rounded-xl border border-[var(--border-color)]"
                     />
                   </div>
 
@@ -302,7 +302,7 @@ export default function EspacioFormPage() {
                       name="tipoEspacioId"
                       value={form.tipoEspacioId}
                       onChange={handleChange}
-                      className="w-full bg-gray-900 text-white px-4 py-3 rounded-xl border border-gray-700"
+className="w-full bg-[var(--card-bg)] text-[var(--text-color)] px-4 py-3 rounded-xl border border-[var(--border-color)]"
                     >
                       <option value="">Seleccione un tipo...</option>
                       {tipos.map((t) => (
@@ -326,7 +326,7 @@ export default function EspacioFormPage() {
                       value={form.precioPorHora ?? ""}
                       onChange={handleChange}
                       placeholder="50.00"
-                      className="w-full bg-gray-900 text-white px-4 py-3 rounded-xl border border-gray-700"
+className="w-full bg-[var(--card-bg)] text-[var(--text-color)] px-4 py-3 rounded-xl border border-[var(--border-color)]"
                     />
                   </div>
                 </div>
@@ -342,7 +342,7 @@ export default function EspacioFormPage() {
                     onChange={handleChange}
                     rows={2}
                     placeholder="Proyector, pizarra, parlantes..."
-                    className="w-full bg-gray-900 text-white px-4 py-3 rounded-xl border border-gray-700 resize-none"
+className="w-full bg-[var(--card-bg)] text-[var(--text-color)] px-4 py-3 rounded-xl border border-[var(--border-color)]"
                   />
                 </div>
               </div>

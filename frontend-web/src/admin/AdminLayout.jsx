@@ -10,7 +10,6 @@ export default function AdminLayout() {
     { to: "/admin/reservas", label: "Reservas", icon: Calendar },
     { to: "/admin/usuarios", label: "Usuarios", icon: Users },
     { to: "/admin/espacios", label: "Espacios", icon: DoorOpen },
-    { to: "/admin/horarios", label: "Horarios", icon: Settings },
   ];
 
   return (

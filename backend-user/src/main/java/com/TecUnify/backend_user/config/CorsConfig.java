@@ -15,30 +15,30 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 🔥 Orígenes permitidos (tu React + variación 127.0.0.1)
+        //  Orígenes permitidos
         config.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://127.0.0.1:5173"
         ));
 
-        // 🔥 Métodos permitidos
+        //  Métodos permitidos
         config.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
 
-        // 🔥 Headers permitidos
+        //  Headers permitidos
         config.setAllowedHeaders(Arrays.asList("*"));
 
-        // 🔥 Headers expuestos (necesarios para CORS avanzado)
+        //  Headers expuestos (necesarios para CORS avanzado)
         config.setExposedHeaders(Arrays.asList("*"));
 
-        // 🔥 Permitir credenciales
+        //  Permitir credenciales
         config.setAllowCredentials(true);
 
-        // 🔥 Para cachear preflight durante 1 hora
+        //  Para cachear preflight durante 1 hora
         config.setMaxAge(3600L);
 
-        // 🔥 Registrar configuración
+        //  Registrar configuración
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 

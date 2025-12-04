@@ -173,33 +173,7 @@ export default function TecIA() {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <button
-              onClick={testToken}
-              className="px-4 py-2 rounded-xl transition-all duration-300 
-                       hover:-translate-y-0.5 flex items-center gap-2 font-medium shadow-md"
-              style={{
-                background: "linear-gradient(135deg, #10b981, #059669)",
-                color: "white"
-              }}
-            >
-              <TestTube className="w-4 h-4" />
-              Probar Token
-            </button>
-            <button
-              onClick={clearChat}
-              className="px-4 py-2 rounded-xl transition-all duration-300 
-                       hover:-translate-y-0.5 flex items-center gap-2 font-medium shadow-md"
-              style={{
-                background: "linear-gradient(135deg, #ef4444, #dc2626)",
-                color: "white"
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-              Limpiar
-            </button>
-          </div>
+          
         </div>
       </div>
 

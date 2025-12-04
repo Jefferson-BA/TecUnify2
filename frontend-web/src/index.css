@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
+/*
    PALETA GLOBAL – CLARO & OSCURO
-   ============================================================ */
 
-/* --- MODO CLARO --- */
+
+/* MODO CLARO*/
 :root {
   --bg-main: #f8fafc;
   --bg-navbar: #ffffff;
@@ -32,9 +32,9 @@ html.dark {
   --border-color: #374151;
 }
 
-/* ============================================================
+/* 
    INPUTS Y ELEMENTOS DE FORMULARIO
-   ============================================================ */
+    */
 
 input,
 select,
@@ -111,6 +111,7 @@ textarea::placeholder {
 .dark .perfil-input::placeholder {
   color: #94a3b8 !important;
 }
+
 
 /* ============================================================
    HORARIOS – CALENDARIO
